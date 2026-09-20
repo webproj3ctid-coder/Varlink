@@ -1,1 +1,619 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
+<title>Varlink — Link in Bio</title>
+<meta name="theme-color" content="#f0ebe0"/>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%230a0a0a'/><circle cx='50' cy='50' r='22' fill='%23ffd700' stroke='%23fff' stroke-width='4'/></svg>"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --cream:#f0ebe0;--ink:#0a0a0a;--ink-soft:#2a2a2a;
+  --red:#ff2a2a;--yellow:#ffd700;--green:#22c55e;--blue:#2563eb;
+  --pink:#ff69b4;--purple:#a78bfa;--white:#fff;
+}
+html,body{height:100%;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  color:var(--ink);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+body{background:var(--cream);min-height:100vh}
+a{text-decoration:none;color:inherit}
+img,video{max-width:100%;display:block}
 
+/* LOADING */
+.loading-screen{position:fixed;inset:0;background:#0a0a0a;z-index:9999;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;
+  transition:opacity .3s ease}
+.loading-screen.hidden{opacity:0;pointer-events:none}
+.loading-screen .spinner{width:48px;height:48px;border:4px solid #333;
+  border-top-color:#ffd700;border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-screen p{color:#ffd700;font-weight:800;font-size:12px;
+  text-transform:uppercase;letter-spacing:1.5px}
+
+/* ERROR / NOT FOUND */
+.error-page{min-height:100vh;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;padding:40px 18px;text-align:center;
+  background-color:var(--cream);
+  background-image:radial-gradient(circle,#0a0a0a 1.2px,transparent 1.2px),
+    radial-gradient(circle,#0a0a0a 1.2px,transparent 1.2px);
+  background-size:20px 20px,20px 20px;
+  background-position:0 0,10px 10px}
+.error-page .err-icon{width:80px;height:80px;background:var(--yellow);
+  border:3px solid var(--ink);border-radius:50%;display:grid;place-items:center;
+  margin-bottom:20px;box-shadow:5px 5px 0 var(--red)}
+.error-page .err-icon svg{width:36px;height:36px;stroke:var(--ink);
+  fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.error-page h1{font-size:24px;font-weight:900;text-transform:uppercase;
+  letter-spacing:-.3px;margin-bottom:8px}
+.error-page p{font-size:14px;font-weight:600;color:var(--ink-soft);
+  max-width:340px;margin-bottom:24px;line-height:1.6}
+.error-page .err-btn{display:inline-flex;align-items:center;gap:8px;
+  padding:14px 22px;border-radius:10px;background:var(--ink);color:#fff;
+  font-weight:900;font-size:13.5px;text-transform:uppercase;letter-spacing:.5px;
+  border:2.5px solid var(--ink);box-shadow:3px 3px 0 var(--yellow);
+  transition:transform .1s, box-shadow .1s}
+.error-page .err-btn:hover{transform:translate(-1px,-1px);
+  box-shadow:4px 4px 0 var(--yellow)}
+.error-page .err-btn:active{transform:translate(2px,2px);
+  box-shadow:0 0 0 var(--yellow)}
+.error-page .err-btn svg{width:16px;height:16px;stroke:currentColor;fill:none;
+  stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+
+/* ===== BIO STYLES ===== */
+.ic{width:18px;height:18px;display:inline-block;vertical-align:middle;
+  stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;
+  stroke-linejoin:round}
+@keyframes dotsFlow{
+  from{background-position:0 0,10px 10px}
+  to{background-position:400px -400px,410px -390px}
+}
+.bio-deco{position:fixed;pointer-events:none;z-index:1}
+.bio-deco.d1{width:60px;height:60px;top:8%;left:6%;background:var(--red);
+  border:3px solid var(--ink);transform:rotate(-12deg);box-shadow:5px 5px 0 var(--ink);
+  animation:deco1 6s ease-in-out infinite}
+.bio-deco.d2{width:38px;height:38px;top:16%;right:8%;background:var(--blue);
+  border:3px solid var(--ink);border-radius:50%;transform:rotate(20deg);
+  box-shadow:4px 4px 0 var(--ink);animation:deco2 7s ease-in-out infinite}
+.bio-deco.d3{width:44px;height:44px;bottom:20%;right:6%;background:var(--yellow);
+  border:3px solid var(--ink);transform:rotate(15deg);box-shadow:4px 4px 0 var(--ink);
+  animation:deco3 8s ease-in-out infinite}
+@keyframes deco1{0%,100%{transform:rotate(-12deg) translate(0,0)}
+  50%{transform:rotate(-12deg) translate(6px,-8px)}}
+@keyframes deco2{0%,100%{transform:rotate(20deg) translate(0,0)}
+  50%{transform:rotate(20deg) translate(-6px,8px)}}
+@keyframes deco3{0%,100%{transform:rotate(15deg) translate(0,0)}
+  50%{transform:rotate(15deg) translate(4px,-6px)}}
+
+.bio-wrap{min-height:100vh;width:100%;position:relative;overflow-x:hidden;
+  color:var(--ink);padding:34px 18px 60px;
+  display:flex;flex-direction:column;align-items:center;font-weight:700;z-index:2}
+.bio-inner{width:100%;max-width:420px;position:relative;z-index:2}
+.bio-avatar{width:110px;height:110px;border-radius:50%;border:4px solid var(--ink);
+  overflow:hidden;background:var(--white);margin:0 auto;
+  box-shadow:6px 6px 0 var(--ink);transition:transform .15s, box-shadow .15s}
+.bio-avatar img{width:100%;height:100%;object-fit:cover}
+.bio-avatar video{width:100%;height:100%;object-fit:cover}
+.bio-avatar:active{transform:translate(3px,3px);box-shadow:0 0 0 var(--ink)}
+.bio-header{display:flex;flex-direction:column;align-items:center;
+  margin-bottom:14px;position:relative}
+.bio-title-top{display:inline-block;padding:5px 14px;background:var(--white);
+  color:var(--ink);font-size:13px;font-weight:900;text-transform:uppercase;
+  letter-spacing:1.5px;border:3px solid var(--ink);transform:rotate(-4deg);
+  margin-top:12px;box-shadow:3px 3px 0 var(--ink);z-index:3}
+.bio-name{display:inline-block;padding:7px 18px;background:var(--yellow);
+  color:var(--ink);font-size:21px;font-weight:900;text-transform:uppercase;
+  letter-spacing:.5px;border:3px solid var(--ink);transform:rotate(2deg);
+  margin-top:-4px;box-shadow:5px 5px 0 var(--ink);text-align:center;max-width:100%;
+  word-break:break-word;z-index:2}
+.bio-bio{display:inline-block;padding:6px 14px;background:var(--red);color:var(--white);
+  font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;
+  border:3px solid var(--ink);transform:rotate(-2deg);margin-top:-2px;
+  box-shadow:4px 4px 0 var(--ink);text-align:center;max-width:100%;
+  word-break:break-word;z-index:1}
+.bio-plan-badge{display:inline-block;padding:3px 12px;background:var(--ink);
+  color:var(--yellow);font-size:10px;font-weight:900;text-transform:uppercase;
+  letter-spacing:1.5px;border:2px solid var(--yellow);border-radius:999px;
+  margin-top:10px;box-shadow:2px 2px 0 var(--ink)}
+.bio-plan-badge.pro{background:var(--blue);color:#fff;border-color:var(--ink)}
+.bio-plan-badge.ultimate{background:var(--ink);color:var(--yellow);border-color:var(--yellow)}
+.bio-plan-badge.developer{background:var(--red);color:#fff;border-color:var(--ink)}
+
+.bio-logos{display:flex;justify-content:center;align-items:center;gap:10px;
+  flex-wrap:wrap;margin-bottom:14px;margin-top:4px}
+.bio-logo-item{width:44px;height:44px;border-radius:50%;border:2.5px solid var(--ink);
+  background:var(--white);overflow:hidden;display:grid;place-items:center;
+  box-shadow:3px 3px 0 var(--ink);transition:transform .15s, box-shadow .15s}
+.bio-logo-item img{width:100%;height:100%;object-fit:contain;padding:4px}
+.bio-logo-item:hover{transform:translate(-2px,-2px);box-shadow:5px 5px 0 var(--ink)}
+
+/* Banner persegi panjang */
+.bio-banner{width:100%;max-width:320px;margin:0 auto 18px;aspect-ratio:16/9;
+  border:3px solid var(--ink);border-radius:12px;overflow:hidden;
+  box-shadow:6px 6px 0 var(--ink);background:var(--white);position:relative}
+.bio-banner img,.bio-banner video{width:100%;height:100%;object-fit:cover;display:block}
+@media(max-width:480px){.bio-banner{max-width:100%}}
+
+.bio-links{display:flex;flex-direction:column;gap:14px}
+.bio-link{display:flex;align-items:center;justify-content:center;gap:10px;
+  padding:15px 18px;border:3px solid var(--ink);border-radius:12px;
+  font-weight:900;font-size:14.5px;text-transform:uppercase;letter-spacing:.5px;
+  position:relative;transition:transform .12s, box-shadow .12s;
+  box-shadow:6px 6px 0 var(--ink);cursor:pointer;min-height:56px;
+  background:var(--white);color:var(--ink);animation:linkFadeIn .4s ease both}
+@keyframes linkFadeIn{from{opacity:0;transform:translateY(10px)}
+  to{opacity:1;transform:translateY(0)}}
+.bio-link:hover{transform:translate(-2px,-2px);box-shadow:8px 8px 0 var(--ink)}
+.bio-link:active{transform:translate(4px,4px);box-shadow:0 0 0 var(--ink)}
+.bio-link .licon{width:22px;height:22px;display:grid;place-items:center;flex-shrink:0}
+.bio-link .ltext{flex:1;text-align:center}
+.bio-link.bio-featured{flex-direction:column;align-items:stretch;padding:0;
+  overflow:hidden;gap:0;background:var(--white);color:var(--ink);min-height:0}
+.bio-link.bio-featured .feat-img{width:100%;height:130px;object-fit:cover;
+  border-bottom:3px solid var(--ink);display:block;background:var(--yellow)}
+.bio-link.bio-featured .feat-body{padding:12px 14px;text-align:center}
+.bio-link.bio-featured .feat-body b{font-size:14.5px;font-weight:900;text-transform:uppercase}
+.bio-embed{border:3px solid var(--ink);border-radius:12px;overflow:hidden;
+  box-shadow:6px 6px 0 var(--ink);background:var(--white)}
+.bio-embed iframe{width:100%;display:block;border:none;aspect-ratio:16/9}
+.bio-footer{margin-top:28px;font-size:11px;color:var(--ink);font-weight:800;
+  text-transform:uppercase;letter-spacing:1px;background:var(--white);
+  border:2px solid var(--ink);padding:6px 12px;border-radius:20px;
+  box-shadow:2px 2px 0 var(--ink);display:inline-block}
+.bio-footer a{color:var(--ink);font-weight:900;text-decoration:underline}
+
+/* ANIMASI */
+.bio-wrap.anim-bounce .bio-link:hover{animation:linkBounce .4s ease}
+@keyframes linkBounce{0%,100%{transform:translate(-2px,-2px)}
+  50%{transform:translate(-2px,-8px)}}
+.bio-wrap.anim-shake .bio-link:active{animation:linkShake .3s ease}
+@keyframes linkShake{0%,100%{transform:translate(4px,4px)}
+  25%{transform:translate(0px,4px)}75%{transform:translate(8px,4px)}}
+.bio-wrap.anim-glow .bio-link:hover{box-shadow:8px 8px 0 var(--ink),0 0 24px var(--yellow)}
+
+/* THEMES */
+.theme-neo-cream{background-color:#f0ebe0;
+  background-image:radial-gradient(circle,#0a0a0a 1.4px,transparent 1.4px),
+    radial-gradient(circle,#0a0a0a 1.4px,transparent 1.4px);
+  background-size:20px 20px,20px 20px;background-position:0 0,10px 10px;
+  animation:dotsFlow 24s linear infinite}
+.theme-neo-dark{background-color:#0a0a0a;color:#fff;
+  background-image:radial-gradient(circle,#fff 1.4px,transparent 1.4px),
+    radial-gradient(circle,#fff 1.4px,transparent 1.4px);
+  background-size:20px 20px,20px 20px;background-position:0 0,10px 10px;
+  animation:dotsFlow 24s linear infinite}
+.theme-neo-dark .bio-avatar{border-color:#fff;box-shadow:6px 6px 0 var(--yellow)}
+.theme-neo-dark .bio-title-top{background:var(--yellow);color:var(--ink);border-color:#fff}
+.theme-neo-dark .bio-name{background:var(--red);color:#fff;border-color:#fff;box-shadow:5px 5px 0 var(--yellow)}
+.theme-neo-dark .bio-bio{background:var(--blue);color:#fff;border-color:#fff}
+.theme-neo-dark .bio-link{background:var(--white);color:var(--ink);border-color:#fff;box-shadow:6px 6px 0 var(--yellow)}
+.theme-neo-dark .bio-banner,.theme-neo-dark .bio-embed{border-color:#fff}
+.theme-neo-dark .bio-footer{background:var(--yellow);color:var(--ink);border-color:#fff;box-shadow:2px 2px 0 var(--red)}
+.theme-neo-dark .bio-logo-item{border-color:#fff;box-shadow:3px 3px 0 var(--yellow)}
+.theme-neo-blue{background-color:#2563eb;color:#fff;
+  background-image:radial-gradient(circle,#fff 1.4px,transparent 1.4px),
+    radial-gradient(circle,#fff 1.4px,transparent 1.4px);
+  background-size:20px 20px,20px 20px;background-position:0 0,10px 10px;
+  animation:dotsFlow 24s linear infinite}
+.theme-neo-blue .bio-avatar{border-color:#fff;box-shadow:6px 6px 0 var(--yellow)}
+.theme-neo-blue .bio-title-top{background:var(--white);color:var(--ink);border-color:var(--ink)}
+.theme-neo-blue .bio-name{background:var(--yellow);color:var(--ink);border-color:var(--ink);box-shadow:5px 5px 0 var(--ink)}
+.theme-neo-blue .bio-bio{background:var(--pink);color:var(--ink);border-color:var(--ink)}
+.theme-neo-blue .bio-link{background:var(--white);color:var(--ink);border-color:var(--ink);box-shadow:6px 6px 0 var(--ink)}
+.theme-neo-blue .bio-footer{background:var(--yellow);color:var(--ink);border-color:var(--ink);box-shadow:2px 2px 0 var(--pink)}
+.theme-neo-pink{background-color:#ff69b4;color:var(--ink);
+  background-image:radial-gradient(circle,#0a0a0a 1.4px,transparent 1.4px),
+    radial-gradient(circle,#0a0a0a 1.4px,transparent 1.4px);
+  background-size:20px 20px,20px 20px;background-position:0 0,10px 10px;
+  animation:dotsFlow 24s linear infinite}
+.theme-neo-pink .bio-avatar{border-color:var(--ink);box-shadow:6px 6px 0 var(--yellow)}
+.theme-neo-pink .bio-name{background:var(--white);color:var(--ink);border-color:var(--ink)}
+.theme-neo-pink .bio-bio{background:var(--ink);color:var(--yellow);border-color:var(--ink)}
+.theme-neo-green{background-color:#22c55e;color:var(--ink);
+  background-image:radial-gradient(circle,#0a0a0a 1.4px,transparent 1.4px),
+    radial-gradient(circle,#0a0a0a 1.4px,transparent 1.4px);
+  background-size:20px 20px,20px 20px;background-position:0 0,10px 10px;
+  animation:dotsFlow 24s linear infinite}
+.theme-neo-green .bio-avatar{border-color:var(--ink);box-shadow:6px 6px 0 var(--yellow)}
+.theme-neo-green .bio-name{background:var(--yellow);color:var(--ink);border-color:var(--ink)}
+.theme-neo-green .bio-bio{background:var(--ink);color:#fff;border-color:var(--ink)}
+.theme-neo-purple{background-color:#a78bfa;color:var(--ink);
+  background-image:radial-gradient(circle,#0a0a0a 1.4px,transparent 1.4px),
+    radial-gradient(circle,#0a0a0a 1.4px,transparent 1.4px);
+  background-size:20px 20px,20px 20px;background-position:0 0,10px 10px;
+  animation:dotsFlow 24s linear infinite}
+.theme-neo-purple .bio-avatar{border-color:var(--ink);box-shadow:6px 6px 0 var(--pink)}
+.theme-neo-purple .bio-name{background:var(--yellow);color:var(--ink);border-color:var(--ink)}
+.theme-neo-purple .bio-bio{background:var(--pink);color:var(--ink);border-color:var(--ink)}
+
+/* LOCK */
+.lock-overlay{position:fixed;inset:0;background:rgba(240,235,224,.96);z-index:9998;
+  display:grid;place-items:center;padding:18px}
+.lock-card{background:var(--white);border:3px solid var(--ink);border-radius:14px;
+  padding:28px;max-width:340px;width:100%;text-align:center;
+  box-shadow:8px 8px 0 var(--red)}
+.lock-card .li{width:56px;height:56px;background:var(--ink);color:var(--yellow);
+  border-radius:50%;display:grid;place-items:center;margin:0 auto 12px}
+.lock-card .li .ic{width:26px;height:26px}
+.lock-card h3{margin-bottom:6px;font-size:16px;text-transform:uppercase;font-weight:900}
+.lock-card p{font-size:13px;margin-bottom:16px;font-weight:600}
+.lock-card input{width:100%;padding:12px;border-radius:10px;border:2.5px solid var(--ink);
+  background:var(--white);color:var(--ink);font-size:14px;outline:none;
+  text-align:center;font-weight:700;font-family:inherit}
+.lock-card button{width:100%;padding:12px;border-radius:10px;border:2.5px solid var(--ink);
+  background:var(--ink);color:var(--white);font-weight:900;cursor:pointer;
+  margin-top:10px;font-size:13.5px;text-transform:uppercase;
+  box-shadow:3px 3px 0 var(--red);transition:transform .1s, box-shadow .1s;
+  font-family:inherit}
+</style>
+</head>
+<body>
+
+<div id="app">
+  <div class="loading-screen" id="loading">
+    <div class="spinner"></div>
+    <p>Memuat...</p>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+<script>
+/* =========================================================
+   VARLINK — PUBLIC VIEWER
+   Hanya render bio publik. Gak ada login/dashboard/editor.
+   ========================================================= */
+
+/* KONFIGURASI */
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyCzEZCtXJTLOLVK3xvcpcUQEgSmwcmPXuQ",
+  authDomain: "allweb-9dacd.firebaseapp.com",
+  projectId: "allweb-9dacd",
+  storageBucket: "allweb-9dacd.firebasestorage.app",
+  messagingSenderId: "876830048672",
+  appId: "1:876830048672:web:5795f72db6fa8e7a5324c5"
+};
+
+/* URL situs generator — untuk footer "Powered by" */
+const PARENT_SITE = "https://varlinkbio-site.vercel.app";
+
+/* INIT FIREBASE */
+firebase.initializeApp(FIREBASE_CONFIG);
+const db = firebase.firestore();
+
+/* UTILS */
+const $ = (s, r=document) => r.querySelector(s);
+const $$ = (s, r=document) => [...r.querySelectorAll(s)];
+const esc = (s="") => String(s).replace(/[&<>"']/g, c => ({
+  "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+}[c]));
+
+/* SVG ICONS */
+const ICONS = {
+  link:'<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
+  user:'<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+  lock:'<rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
+  youtube:'<path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"/><polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"/>',
+  music:'<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>',
+  video:'<polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>',
+  instagram:'<rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>',
+  whatsapp:'<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>',
+  twitter:'<path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"/>',
+  x:'<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>',
+  back:'<line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>'
+};
+function ico(name, cls=""){
+  const d = ICONS[name] || ICONS.link;
+  return `<svg class="ic ${cls}" viewBox="0 0 24 24">${d}</svg>`;
+}
+
+/* DETECT LINK TYPE */
+const LinkTypes = {
+  detect(url){
+    if(!url) return "classic";
+    const u = url.toLowerCase();
+    if(u.includes("youtube.com") || u.includes("youtu.be")) return "youtube";
+    if(u.includes("spotify.com")) return "spotify";
+    if(u.includes("tiktok.com")) return "tiktok";
+    if(u.includes("vimeo.com")) return "vimeo";
+    if(u.includes("instagram.com")) return "instagram";
+    if(u.includes("twitter.com") || u.includes("x.com")) return "twitter";
+    if(u.includes("wa.me") || u.includes("whatsapp.com")) return "whatsapp";
+    return "classic";
+  },
+  embed(url){
+    if(!url) return null;
+    const yt = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
+    if(yt) return `https://www.youtube.com/embed/${yt[1]}`;
+    const sp = url.match(/spotify\.com\/(track|album|playlist|episode)\/([A-Za-z0-9]+)/);
+    if(sp) return `https://open.spotify.com/embed/${sp[1]}/${sp[2]}`;
+    const vm = url.match(/vimeo\.com\/(\d+)/);
+    if(vm) return `https://player.vimeo.com/video/${vm[1]}`;
+    const tt = url.match(/tiktok\.com\/.*\/video\/(\d+)/);
+    if(tt) return `https://www.tiktok.com/embed/v2/${tt[1]}`;
+    return null;
+  },
+  icon(url){
+    const t = this.detect(url);
+    return {
+      youtube:"youtube", spotify:"music", tiktok:"video", vimeo:"video",
+      instagram:"instagram", twitter:"twitter", whatsapp:"whatsapp", classic:"link"
+    }[t] || "link";
+  }
+};
+
+/* CONTRAST */
+function contrastText(hex){
+  if(!hex) return "#0a0a0a";
+  const h = hex.replace("#","");
+  if(h.length !== 6) return "#0a0a0a";
+  const r = parseInt(h.slice(0,2),16), g = parseInt(h.slice(2,4),16), b = parseInt(h.slice(4,6),16);
+  const lum = (0.299*r + 0.587*g + 0.114*b)/255;
+  return lum > 0.6 ? "#0a0a0a" : "#ffffff";
+}
+
+/* FETCH BIO — by ID atau slug */
+async function getBio(idOrSlug){
+  // Coba by document ID dulu
+  try{
+    const d = await db.collection("bios").doc(idOrSlug).get();
+    if(d.exists) return { id:d.id, ...d.data() };
+  }catch(e){}
+
+  // Fallback: cari by slug
+  const q = await db.collection("bios").where("slug","==",idOrSlug).limit(1).get();
+  if(!q.empty){
+    const doc = q.docs[0];
+    return { id:doc.id, ...doc.data() };
+  }
+  return null;
+}
+
+/* =========================================================
+   RENDER BIO
+   ========================================================= */
+function renderBio(d){
+  const NEO_COLORS = ["red","yellow","green","blue","pink","purple","white"];
+  const NEO_HEX = {
+    red:"#ff2a2a", yellow:"#ffd700", green:"#22c55e",
+    blue:"#2563eb", pink:"#ff69b4", purple:"#a78bfa", white:"#ffffff"
+  };
+
+  const links = (d.links||[]).map((l,idx)=>{
+    const embed = LinkTypes.embed(l.url);
+    const type = LinkTypes.detect(l.url);
+    const autoColor = NEO_COLORS[idx % NEO_COLORS.length];
+    const bg = l.color || NEO_HEX[autoColor];
+    const fg = contrastText(bg);
+
+    // Link dengan gambar (featured)
+    if(l.thumb){
+      return `<a class="bio-link bio-featured" href="${esc(l.url)}" target="_blank" rel="noopener" data-click="${idx}">
+        <img class="feat-img" src="${esc(l.thumb)}" alt=""/>
+        <div class="feat-body"><b>${esc(l.label||"Link")}</b></div>
+      </a>`;
+    }
+
+    // Embed apps (YouTube, Spotify, Vimeo, TikTok)
+    if(embed && ["youtube","spotify","vimeo","tiktok"].includes(type)){
+      return `<div class="bio-embed"><iframe src="${esc(embed)}" allowfullscreen allow="autoplay; encrypted-media; picture-in-picture"></iframe></div>`;
+    }
+
+    // Classic link
+    return `<a class="bio-link" href="${esc(l.url)}" target="_blank" rel="noopener" data-click="${idx}"
+      style="background:${esc(bg)};color:${fg}">
+      <span class="licon">${ico(LinkTypes.icon(l.url))}</span>
+      <span class="ltext">${esc(l.label||"Link")}</span>
+    </a>`;
+  }).join("");
+
+  const profileBlock = d.profile
+    ? (d.profileType==="video"
+        ? `<video src="${esc(d.profile)}" autoplay muted loop playsinline></video>`
+        : `<img src="${esc(d.profile)}" alt=""/>`)
+    : `<div style="width:100%;height:100%;display:grid;place-items:center;color:var(--ink)">${ico('user')}</div>`;
+
+  const bannerBlock = d.banner
+    ? `<div class="bio-banner">${
+        d.bannerType==="video"
+          ? `<video src="${esc(d.banner)}" autoplay muted loop playsinline></video>`
+          : `<img src="${esc(d.banner)}" alt=""/>`
+      }</div>`
+    : "";
+
+  const bioText = d.bio ? `<div class="bio-bio">${esc(d.bio)}</div>` : "";
+
+  const badgeMap = { pro:"PRO", ultimate:"ULTIMATE", developer:"DEV" };
+  const badge = badgeMap[d.ownerPlan] || "";
+  const badgeHtml = badge ? `<div class="bio-plan-badge ${d.ownerPlan}">${badge}</div>` : "";
+
+  const logosHtml = (Array.isArray(d.logos) && d.logos.filter(lg=>lg.img).length)
+    ? `<div class="bio-logos">
+        ${d.logos.filter(lg=>lg.img).map(lg=>`
+          <a class="bio-logo-item" href="${esc(lg.url||"#")}" target="_blank" rel="noopener" title="${esc(lg.name||"")}">
+            <img src="${esc(lg.img)}" alt=""/>
+          </a>`).join("")}
+      </div>`
+    : "";
+
+  const animCls = d.animation && d.animation !== "none" ? `anim-${d.animation}` : "";
+  const themeClass = `theme-${d.theme||"neo-cream"}`;
+  const isLocked = !!d.lock;
+  const bioId = d.id || "";
+
+  $("#app").innerHTML = `
+    <div class="bio-deco d1"></div><div class="bio-deco d2"></div><div class="bio-deco d3"></div>
+    <div class="bio-wrap ${themeClass} ${animCls}">
+      <div class="bio-inner">
+        <div class="bio-header">
+          <div class="bio-avatar">${profileBlock}</div>
+          <div class="bio-title-top">Bio Link</div>
+          <div class="bio-name">${esc(d.name||"Tanpa Nama")}</div>
+          ${bioText}
+          ${badgeHtml}
+        </div>
+        ${logosHtml}
+        ${bannerBlock}
+        <div class="bio-links">${links}</div>
+        <div style="text-align:center">
+          <div class="bio-footer">Powered by <a href="${PARENT_SITE}" target="_top">Varlinkbio</a> · by Varoo</div>
+        </div>
+      </div>
+    </div>
+    ${isLocked ? `
+      <div class="lock-overlay" id="lock-overlay">
+        <div class="lock-card">
+          <div class="li">${ico('lock')}</div>
+          <h3>Terkunci</h3>
+          <p>Masukkan password untuk membuka.</p>
+          <input type="password" id="lock-pass" placeholder="Password..." autocomplete="off"/>
+          <button id="lock-btn">Buka</button>
+        </div>
+      </div>` : ""}`;
+
+  /* ANALYTICS — track view langsung ke Firestore */
+  if(bioId){
+    db.collection("bios").doc(bioId).update({
+      "stats.views": firebase.firestore.FieldValue.increment(1)
+    }).catch(()=>{});
+  }
+
+  /* ANALYTICS — track click */
+  $$("[data-click]").forEach(el => {
+    el.addEventListener("click", () => {
+      const idx = +el.dataset.click;
+      if(bioId){
+        db.collection("bios").doc(bioId).update({
+          [`stats.clicks.${idx}`]: firebase.firestore.FieldValue.increment(1)
+        }).catch(()=>{});
+      }
+    });
+  });
+
+  /* LOCK HANDLER */
+  if(isLocked){
+    const overlay = $("#lock-overlay");
+    const inp = $("#lock-pass");
+    const btn = $("#lock-btn");
+
+    if(sessionStorage.getItem("varlink_unlocked_"+bioId) === "1"){
+      overlay.style.display = "none";
+    }
+
+    const unlock = () => {
+      if(inp.value === d.lock){
+        overlay.style.display = "none";
+        sessionStorage.setItem("varlink_unlocked_"+bioId, "1");
+      } else {
+        inp.style.borderColor = "#ff2a2a";
+        inp.value = "";
+        inp.placeholder = "Salah, coba lagi...";
+        setTimeout(()=>{
+          inp.style.borderColor = "";
+          inp.placeholder = "Password...";
+        }, 1400);
+      }
+    };
+    btn.addEventListener("click", unlock);
+    inp.addEventListener("keydown", e => { if(e.key === "Enter") unlock(); });
+    inp.focus();
+  }
+}
+
+/* =========================================================
+   NOT FOUND PAGE
+   ========================================================= */
+function renderNotFound(){
+  document.title = "Varlink — Tidak Ditemukan";
+  $("#app").innerHTML = `
+    <div class="error-page">
+      <div class="err-icon">${ico('x')}</div>
+      <h1>Tidak Ditemukan</h1>
+      <p>Link-in-bio ini gak ada, atau sudah dihapus. Mau bikin bio kamu sendiri?</p>
+      <a href="${PARENT_SITE}" class="err-btn">
+        ${ico('link')} Bikin di Varlinkbio
+      </a>
+    </div>`;
+}
+
+/* =========================================================
+   REDIRECT PAGE (kalau bukan route /u/)
+   ========================================================= */
+function renderRedirect(){
+  document.title = "Varlink — Redirect";
+  $("#app").innerHTML = `
+    <div class="error-page">
+      <div class="err-icon" style="background:var(--blue);color:#fff">${ico('link')}</div>
+      <h1>Varlink</h1>
+      <p>Kamu akan diarahkan ke halaman utama Varlinkbio...</p>
+      <a href="${PARENT_SITE}" class="err-btn">
+        ${ico('link')} Buka Varlinkbio
+      </a>
+    </div>`;
+  // Auto redirect setelah 1.5 detik
+  setTimeout(() => {
+    location.replace(PARENT_SITE);
+  }, 1500);
+}
+
+/* =========================================================
+   FAVICON
+   ========================================================= */
+async function applyFavicon(){
+  try{
+    const doc = await db.collection("settings").doc("app").get();
+    const fav = doc.exists ? doc.data().favicon : null;
+    if(fav){
+      let links = document.querySelectorAll("link[rel='icon'], link[rel='shortcut icon']");
+      if(!links.length){
+        const link = document.createElement("link");
+        link.rel = "icon";
+        document.head.appendChild(link);
+        links = [link];
+      }
+      links.forEach(l => l.href = fav);
+    }
+  }catch(e){ console.warn("favicon:", e); }
+}
+
+/* =========================================================
+   BOOT
+   ========================================================= */
+(async function boot(){
+  const raw = location.hash.slice(1) || "/";
+  const path = raw.split("?")[0];
+
+  // Route /u/:slug → tampilkan bio
+  if(path.startsWith("/u/")){
+    const identifier = path.slice(3).trim();
+    if(!identifier){ renderNotFound(); return; }
+
+    // Apply favicon dulu
+    await applyFavicon();
+
+    // Fetch bio
+    let bio = null;
+    try{
+      bio = await getBio(identifier);
+    }catch(e){ console.error("getBio:", e); }
+
+    if(!bio){
+      renderNotFound();
+      return;
+    }
+
+    // Set title dinamis
+    document.title = `VarlinkBio-${bio.name || "User"}`;
+
+    // Render bio
+    renderBio(bio);
+  }
+  // Route lain → redirect ke Varlinkbio
+  else {
+    renderRedirect();
+  }
+})();
+</script>
+</body>
+  </html>
