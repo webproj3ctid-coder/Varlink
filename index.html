@@ -31,7 +31,7 @@ img,video{max-width:100%;display:block}
 .loading-screen p{color:#ffd700;font-weight:800;font-size:12px;
   text-transform:uppercase;letter-spacing:1.5px}
 
-/* ERROR / NOT FOUND */
+/* ERROR PAGE */
 .error-page{min-height:100vh;display:flex;flex-direction:column;align-items:center;
   justify-content:center;padding:40px 18px;text-align:center;
   background-color:var(--cream);
@@ -60,7 +60,7 @@ img,video{max-width:100%;display:block}
 .error-page .err-btn svg{width:16px;height:16px;stroke:currentColor;fill:none;
   stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
 
-/* ===== BIO STYLES ===== */
+/* BIO STYLES */
 .ic{width:18px;height:18px;display:inline-block;vertical-align:middle;
   stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;
   stroke-linejoin:round}
@@ -89,6 +89,14 @@ img,video{max-width:100%;display:block}
   color:var(--ink);padding:34px 18px 60px;
   display:flex;flex-direction:column;align-items:center;font-weight:700;z-index:2}
 .bio-inner{width:100%;max-width:420px;position:relative;z-index:2}
+
+/* ===== BANNER KURUS (DI ATAS PROFIL) — v23 ===== */
+.bio-banner{width:100%;max-width:100%;margin:0 auto 16px;height:110px;
+  border:3px solid var(--ink);border-radius:12px;overflow:hidden;
+  box-shadow:6px 6px 0 var(--ink);background:var(--white);position:relative}
+.bio-banner img,.bio-banner video{width:100%;height:100%;object-fit:cover;display:block}
+@media(max-width:480px){.bio-banner{height:95px;margin-bottom:14px}}
+
 .bio-avatar{width:110px;height:110px;border-radius:50%;border:4px solid var(--ink);
   overflow:hidden;background:var(--white);margin:0 auto;
   box-shadow:6px 6px 0 var(--ink);transition:transform .15s, box-shadow .15s}
@@ -115,9 +123,9 @@ img,video{max-width:100%;display:block}
   color:var(--yellow);font-size:10px;font-weight:900;text-transform:uppercase;
   letter-spacing:1.5px;border:2px solid var(--yellow);border-radius:999px;
   margin-top:10px;box-shadow:2px 2px 0 var(--ink)}
+.bio-plan-badge.starter{background:var(--green);color:#fff;border-color:var(--ink)}
 .bio-plan-badge.pro{background:var(--blue);color:#fff;border-color:var(--ink)}
 .bio-plan-badge.ultimate{background:var(--ink);color:var(--yellow);border-color:var(--yellow)}
-.bio-plan-badge.developer{background:var(--red);color:#fff;border-color:var(--ink)}
 
 .bio-logos{display:flex;justify-content:center;align-items:center;gap:10px;
   flex-wrap:wrap;margin-bottom:14px;margin-top:4px}
@@ -126,13 +134,6 @@ img,video{max-width:100%;display:block}
   box-shadow:3px 3px 0 var(--ink);transition:transform .15s, box-shadow .15s}
 .bio-logo-item img{width:100%;height:100%;object-fit:contain;padding:4px}
 .bio-logo-item:hover{transform:translate(-2px,-2px);box-shadow:5px 5px 0 var(--ink)}
-
-/* Banner persegi panjang */
-.bio-banner{width:100%;max-width:320px;margin:0 auto 18px;aspect-ratio:16/9;
-  border:3px solid var(--ink);border-radius:12px;overflow:hidden;
-  box-shadow:6px 6px 0 var(--ink);background:var(--white);position:relative}
-.bio-banner img,.bio-banner video{width:100%;height:100%;object-fit:cover;display:block}
-@media(max-width:480px){.bio-banner{max-width:100%}}
 
 .bio-links{display:flex;flex-direction:column;gap:14px}
 .bio-link{display:flex;align-items:center;justify-content:center;gap:10px;
@@ -161,6 +162,16 @@ img,video{max-width:100%;display:block}
   border:2px solid var(--ink);padding:6px 12px;border-radius:20px;
   box-shadow:2px 2px 0 var(--ink);display:inline-block}
 .bio-footer a{color:var(--ink);font-weight:900;text-decoration:underline}
+
+/* CTA FLOATING */
+.bio-cta-float{position:fixed;bottom:16px;right:16px;z-index:9990;
+  display:inline-flex;align-items:center;gap:6px;
+  background:var(--ink);color:var(--yellow);font-weight:900;font-size:11px;
+  text-transform:uppercase;letter-spacing:.5px;text-decoration:none;
+  padding:8px 14px;border-radius:999px;border:2.5px solid var(--yellow);
+  box-shadow:3px 3px 0 var(--yellow);animation:ctaBounce 2.5s ease-in-out infinite}
+.bio-cta-float:hover{transform:translate(-1px,-1px);box-shadow:4px 4px 0 var(--yellow)}
+@keyframes ctaBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
 
 /* ANIMASI */
 .bio-wrap.anim-bounce .bio-link:hover{animation:linkBounce .4s ease}
@@ -261,11 +272,12 @@ img,video{max-width:100%;display:block}
 
 <script>
 /* =========================================================
-   VARLINK — PUBLIC VIEWER
+   VARLINK — PUBLIC VIEWER v23
    Hanya render bio publik. Gak ada login/dashboard/editor.
+   Update: banner kurus atas, no watermark (plan), CTA floating,
+           filter active links, badge starter
    ========================================================= */
 
-/* KONFIGURASI */
 const FIREBASE_CONFIG = {
   apiKey: "AIzaSyCzEZCtXJTLOLVK3xvcpcUQEgSmwcmPXuQ",
   authDomain: "allweb-9dacd.firebaseapp.com",
@@ -275,21 +287,17 @@ const FIREBASE_CONFIG = {
   appId: "1:876830048672:web:5795f72db6fa8e7a5324c5"
 };
 
-/* URL situs generator — untuk footer "Powered by" */
 const PARENT_SITE = "https://varlinkbio-site.vercel.app";
 
-/* INIT FIREBASE */
 firebase.initializeApp(FIREBASE_CONFIG);
 const db = firebase.firestore();
 
-/* UTILS */
 const $ = (s, r=document) => r.querySelector(s);
 const $$ = (s, r=document) => [...r.querySelectorAll(s)];
 const esc = (s="") => String(s).replace(/[&<>"']/g, c => ({
   "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
 }[c]));
 
-/* SVG ICONS */
 const ICONS = {
   link:'<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
   user:'<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
@@ -308,7 +316,6 @@ function ico(name, cls=""){
   return `<svg class="ic ${cls}" viewBox="0 0 24 24">${d}</svg>`;
 }
 
-/* DETECT LINK TYPE */
 const LinkTypes = {
   detect(url){
     if(!url) return "classic";
@@ -343,7 +350,6 @@ const LinkTypes = {
   }
 };
 
-/* CONTRAST */
 function contrastText(hex){
   if(!hex) return "#0a0a0a";
   const h = hex.replace("#","");
@@ -353,15 +359,12 @@ function contrastText(hex){
   return lum > 0.6 ? "#0a0a0a" : "#ffffff";
 }
 
-/* FETCH BIO — by ID atau slug */
 async function getBio(idOrSlug){
-  // Coba by document ID dulu
   try{
     const d = await db.collection("bios").doc(idOrSlug).get();
     if(d.exists) return { id:d.id, ...d.data() };
   }catch(e){}
 
-  // Fallback: cari by slug
   const q = await db.collection("bios").where("slug","==",idOrSlug).limit(1).get();
   if(!q.empty){
     const doc = q.docs[0];
@@ -371,7 +374,7 @@ async function getBio(idOrSlug){
 }
 
 /* =========================================================
-   RENDER BIO
+   RENDER BIO v23
    ========================================================= */
 function renderBio(d){
   const NEO_COLORS = ["red","yellow","green","blue","pink","purple","white"];
@@ -380,14 +383,16 @@ function renderBio(d){
     blue:"#2563eb", pink:"#ff69b4", purple:"#a78bfa", white:"#ffffff"
   };
 
-  const links = (d.links||[]).map((l,idx)=>{
+  // Filter link yang aktif saja
+  const activeLinks = (d.links||[]).filter(l => l.active !== false);
+
+  const links = activeLinks.map((l,idx)=>{
     const embed = LinkTypes.embed(l.url);
     const type = LinkTypes.detect(l.url);
     const autoColor = NEO_COLORS[idx % NEO_COLORS.length];
     const bg = l.color || NEO_HEX[autoColor];
     const fg = contrastText(bg);
 
-    // Link dengan gambar (featured)
     if(l.thumb){
       return `<a class="bio-link bio-featured" href="${esc(l.url)}" target="_blank" rel="noopener" data-click="${idx}">
         <img class="feat-img" src="${esc(l.thumb)}" alt=""/>
@@ -395,12 +400,10 @@ function renderBio(d){
       </a>`;
     }
 
-    // Embed apps (YouTube, Spotify, Vimeo, TikTok)
     if(embed && ["youtube","spotify","vimeo","tiktok"].includes(type)){
       return `<div class="bio-embed"><iframe src="${esc(embed)}" allowfullscreen allow="autoplay; encrypted-media; picture-in-picture"></iframe></div>`;
     }
 
-    // Classic link
     return `<a class="bio-link" href="${esc(l.url)}" target="_blank" rel="noopener" data-click="${idx}"
       style="background:${esc(bg)};color:${fg}">
       <span class="licon">${ico(LinkTypes.icon(l.url))}</span>
@@ -414,6 +417,7 @@ function renderBio(d){
         : `<img src="${esc(d.profile)}" alt=""/>`)
     : `<div style="width:100%;height:100%;display:grid;place-items:center;color:var(--ink)">${ico('user')}</div>`;
 
+  // ===== BANNER DI ATAS + KURUS =====
   const bannerBlock = d.banner
     ? `<div class="bio-banner">${
         d.bannerType==="video"
@@ -424,7 +428,8 @@ function renderBio(d){
 
   const bioText = d.bio ? `<div class="bio-bio">${esc(d.bio)}</div>` : "";
 
-  const badgeMap = { pro:"PRO", ultimate:"ULTIMATE", developer:"DEV" };
+  // Badge dengan STARTER (v23)
+  const badgeMap = { starter:"STARTER", pro:"PRO", ultimate:"ULTIMATE" };
   const badge = badgeMap[d.ownerPlan] || "";
   const badgeHtml = badge ? `<div class="bio-plan-badge ${d.ownerPlan}">${badge}</div>` : "";
 
@@ -442,10 +447,22 @@ function renderBio(d){
   const isLocked = !!d.lock;
   const bioId = d.id || "";
 
+  // Watermark logic — sembunyikan kalau showWatermark === false
+  const showWatermark = d.showWatermark !== false;
+  const watermarkHtml = showWatermark
+    ? `<div class="bio-footer">Powered by <a href="${PARENT_SITE}" target="_top">Varlinkbio</a> · by Varoo</div>`
+    : `<div class="bio-footer" style="opacity:.6;font-size:10px">by Varoo</div>`;
+
+  // CTA Floating — muncul kalau ada watermark (bukan Pro/Ultimate)
+  const ctaHtml = showWatermark
+    ? `<a class="bio-cta-float" href="${PARENT_SITE}/#/register" target="_top">✨ Bikin bio kamu</a>`
+    : "";
+
   $("#app").innerHTML = `
     <div class="bio-deco d1"></div><div class="bio-deco d2"></div><div class="bio-deco d3"></div>
     <div class="bio-wrap ${themeClass} ${animCls}">
       <div class="bio-inner">
+        ${bannerBlock}
         <div class="bio-header">
           <div class="bio-avatar">${profileBlock}</div>
           <div class="bio-title-top">Bio Link</div>
@@ -454,13 +471,11 @@ function renderBio(d){
           ${badgeHtml}
         </div>
         ${logosHtml}
-        ${bannerBlock}
         <div class="bio-links">${links}</div>
-        <div style="text-align:center">
-          <div class="bio-footer">Powered by <a href="${PARENT_SITE}" target="_top">Varlinkbio</a> · by Varoo</div>
-        </div>
+        <div style="text-align:center">${watermarkHtml}</div>
       </div>
     </div>
+    ${ctaHtml}
     ${isLocked ? `
       <div class="lock-overlay" id="lock-overlay">
         <div class="lock-card">
@@ -472,14 +487,14 @@ function renderBio(d){
         </div>
       </div>` : ""}`;
 
-  /* ANALYTICS — track view langsung ke Firestore */
+  // Track view
   if(bioId){
     db.collection("bios").doc(bioId).update({
       "stats.views": firebase.firestore.FieldValue.increment(1)
     }).catch(()=>{});
   }
 
-  /* ANALYTICS — track click */
+  // Track click
   $$("[data-click]").forEach(el => {
     el.addEventListener("click", () => {
       const idx = +el.dataset.click;
@@ -491,7 +506,7 @@ function renderBio(d){
     });
   });
 
-  /* LOCK HANDLER */
+  // Lock handler
   if(isLocked){
     const overlay = $("#lock-overlay");
     const inp = $("#lock-pass");
@@ -521,9 +536,6 @@ function renderBio(d){
   }
 }
 
-/* =========================================================
-   NOT FOUND PAGE
-   ========================================================= */
 function renderNotFound(){
   document.title = "Varlink — Tidak Ditemukan";
   $("#app").innerHTML = `
@@ -537,9 +549,6 @@ function renderNotFound(){
     </div>`;
 }
 
-/* =========================================================
-   REDIRECT PAGE (kalau bukan route /u/)
-   ========================================================= */
 function renderRedirect(){
   document.title = "Varlink — Redirect";
   $("#app").innerHTML = `
@@ -551,15 +560,11 @@ function renderRedirect(){
         ${ico('link')} Buka Varlinkbio
       </a>
     </div>`;
-  // Auto redirect setelah 1.5 detik
   setTimeout(() => {
     location.replace(PARENT_SITE);
   }, 1500);
 }
 
-/* =========================================================
-   FAVICON
-   ========================================================= */
 async function applyFavicon(){
   try{
     const doc = await db.collection("settings").doc("app").get();
@@ -577,22 +582,16 @@ async function applyFavicon(){
   }catch(e){ console.warn("favicon:", e); }
 }
 
-/* =========================================================
-   BOOT
-   ========================================================= */
 (async function boot(){
   const raw = location.hash.slice(1) || "/";
   const path = raw.split("?")[0];
 
-  // Route /u/:slug → tampilkan bio
   if(path.startsWith("/u/")){
     const identifier = path.slice(3).trim();
     if(!identifier){ renderNotFound(); return; }
 
-    // Apply favicon dulu
     await applyFavicon();
 
-    // Fetch bio
     let bio = null;
     try{
       bio = await getBio(identifier);
@@ -603,13 +602,9 @@ async function applyFavicon(){
       return;
     }
 
-    // Set title dinamis
     document.title = `VarlinkBio-${bio.name || "User"}`;
-
-    // Render bio
     renderBio(bio);
   }
-  // Route lain → redirect ke Varlinkbio
   else {
     renderRedirect();
   }
