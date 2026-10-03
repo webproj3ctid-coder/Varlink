@@ -3,282 +3,686 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
-<title>Varlink — Link in Bio</title>
-<meta name="theme-color" content="#f0ebe0"/>
+<meta name="theme-color" content="#0a0a0a"/>
+<title>Varlinkbio — Link in Bio</title>
+<meta name="description" content="Satu link untuk semua"/>
+<meta property="og:title" content="Varlinkbio"/>
+<meta property="og:description" content="Satu link untuk semua"/>
+<meta property="og:type" content="website"/>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%230a0a0a'/><circle cx='50' cy='50' r='22' fill='%23ffd700' stroke='%23fff' stroke-width='4'/></svg>"/>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet"/>
+
 <style>
+/* ═══════════════════════════════════════════════════════════
+   RESET & BASE
+   ═══════════════════════════════════════════════════════════ */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --cream:#f0ebe0;--ink:#0a0a0a;--ink-soft:#2a2a2a;
-  --red:#ff2a2a;--yellow:#ffd700;--green:#22c55e;--blue:#2563eb;
+  --cream:#f0ebe0;--ink:#0a0a0a;--yellow:#ffd700;
+  --red:#ff2a2a;--green:#22c55e;--blue:#2563eb;
   --pink:#ff69b4;--purple:#a78bfa;--white:#fff;
+  --orange:#ff8c00;--gold:#d4af37;
 }
-html,body{height:100%;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
-  color:var(--ink);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased;overflow-x:hidden}
-body{background:var(--cream);min-height:100vh}
+html,body{
+  min-height:100vh;
+  font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  -webkit-font-smoothing:antialiased;
+  color:var(--ink);
+  overflow-x:hidden;
+}
+body{position:relative}
 a{text-decoration:none;color:inherit}
-img,video{max-width:100%;display:block}
+img,video{display:block;max-width:100%}
+button{font-family:inherit}
 
-/* LOADING */
-.loading-screen{position:fixed;inset:0;background:#0a0a0a;z-index:9999;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;
-  transition:opacity .3s ease}
-.loading-screen.hidden{opacity:0;pointer-events:none}
-.loading-screen .spinner{width:48px;height:48px;border:4px solid #333;
-  border-top-color:#ffd700;border-radius:50%;animation:spin .7s linear infinite}
+/* ═══════════════════════════════════════════════════════════
+   LOADING SCREEN
+   ═══════════════════════════════════════════════════════════ */
+.vb-loading{
+  position:fixed;inset:0;z-index:9999;
+  background:#f0ebe0;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  gap:14px;
+  font-weight:800;text-transform:uppercase;
+  font-size:13px;letter-spacing:1px;
+  transition:opacity .3s;
+}
+.vb-loading.hide{opacity:0;pointer-events:none}
+.vb-loading .spinner{
+  width:48px;height:48px;
+  border:4px solid #0a0a0a;
+  border-top-color:transparent;
+  border-radius:50%;
+  animation:spin 1s linear infinite;
+}
 @keyframes spin{to{transform:rotate(360deg)}}
-.loading-screen p{color:#ffd700;font-weight:800;font-size:12px;
-  text-transform:uppercase;letter-spacing:1.5px}
 
-/* ERROR PAGE */
-.error-page{min-height:100vh;display:flex;flex-direction:column;align-items:center;
-  justify-content:center;padding:40px 18px;text-align:center;
-  background-color:var(--cream);
-  background-image:radial-gradient(circle,#0a0a0a 1.2px,transparent 1.2px),
-    radial-gradient(circle,#0a0a0a 1.2px,transparent 1.2px);
+/* ═══════════════════════════════════════════════════════════
+   ERROR PAGE
+   ═══════════════════════════════════════════════════════════ */
+.vb-error{
+  min-height:100vh;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:40px 18px;text-align:center;
+  background:#f0ebe0;
+  background-image:radial-gradient(circle,#0a0a0a 1.4px,transparent 1.4px),
+    radial-gradient(circle,#0a0a0a 1.4px,transparent 1.4px);
   background-size:20px 20px,20px 20px;
-  background-position:0 0,10px 10px}
-.error-page .err-icon{width:80px;height:80px;background:var(--yellow);
-  border:3px solid var(--ink);border-radius:50%;display:grid;place-items:center;
-  margin-bottom:20px;box-shadow:5px 5px 0 var(--red)}
-.error-page .err-icon svg{width:36px;height:36px;stroke:var(--ink);
-  fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
-.error-page h1{font-size:24px;font-weight:900;text-transform:uppercase;
-  letter-spacing:-.3px;margin-bottom:8px}
-.error-page p{font-size:14px;font-weight:600;color:var(--ink-soft);
-  max-width:340px;margin-bottom:24px;line-height:1.6}
-.error-page .err-btn{display:inline-flex;align-items:center;gap:8px;
-  padding:14px 22px;border-radius:10px;background:var(--ink);color:#fff;
-  font-weight:900;font-size:13.5px;text-transform:uppercase;letter-spacing:.5px;
-  border:2.5px solid var(--ink);box-shadow:3px 3px 0 var(--yellow);
-  transition:transform .1s, box-shadow .1s}
-.error-page .err-btn:hover{transform:translate(-1px,-1px);
-  box-shadow:4px 4px 0 var(--yellow)}
-.error-page .err-btn:active{transform:translate(2px,2px);
-  box-shadow:0 0 0 var(--yellow)}
-.error-page .err-btn svg{width:16px;height:16px;stroke:currentColor;fill:none;
-  stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+  background-position:0 0,10px 10px;
+}
+.vb-error .icon{font-size:80px;margin-bottom:16px}
+.vb-error h1{
+  font-size:24px;font-weight:900;
+  text-transform:uppercase;margin-bottom:8px;
+}
+.vb-error p{
+  font-size:13.5px;font-weight:600;color:#555;
+  margin-bottom:20px;max-width:320px;line-height:1.6;
+}
+.vb-error a{
+  display:inline-block;padding:12px 20px;
+  background:#0a0a0a;color:#fff;
+  border:2.5px solid #0a0a0a;border-radius:10px;
+  font-weight:900;font-size:13px;
+  text-transform:uppercase;letter-spacing:.5px;
+  box-shadow:3px 3px 0 #ffd700;
+}
 
-/* BIO STYLES */
-.ic{width:18px;height:18px;display:inline-block;vertical-align:middle;
-  stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;
-  stroke-linejoin:round}
+/* ═══════════════════════════════════════════════════════════
+   BIO WRAPPER
+   ═══════════════════════════════════════════════════════════ */
+.bio-wrap{
+  min-height:100vh;width:100%;
+  position:relative;overflow-x:hidden;
+  color:var(--ink);
+  padding:34px 18px 60px;
+  display:flex;flex-direction:column;align-items:center;
+  font-weight:700;z-index:2;
+}
+.bio-inner{width:100%;max-width:420px;position:relative;z-index:2}
+
+/* Decoration floating */
+.bio-deco{position:fixed;pointer-events:none;z-index:1}
+.bio-deco.d1{
+  width:60px;height:60px;top:8%;left:6%;
+  background:var(--red);border:3px solid var(--ink);
+  transform:rotate(-12deg);box-shadow:5px 5px 0 var(--ink);
+  animation:deco1 6s ease-in-out infinite;
+}
+.bio-deco.d2{
+  width:38px;height:38px;top:16%;right:8%;
+  background:var(--blue);border:3px solid var(--ink);
+  border-radius:50%;transform:rotate(20deg);
+  box-shadow:4px 4px 0 var(--ink);
+  animation:deco2 7s ease-in-out infinite;
+}
+.bio-deco.d3{
+  width:44px;height:44px;bottom:20%;right:6%;
+  background:var(--yellow);border:3px solid var(--ink);
+  transform:rotate(15deg);box-shadow:4px 4px 0 var(--ink);
+  animation:deco3 8s ease-in-out infinite;
+}
+@keyframes deco1{
+  0%,100%{transform:rotate(-12deg) translate(0,0)}
+  50%{transform:rotate(-12deg) translate(6px,-8px)}
+}
+@keyframes deco2{
+  0%,100%{transform:rotate(20deg) translate(0,0)}
+  50%{transform:rotate(20deg) translate(-6px,8px)}
+}
+@keyframes deco3{
+  0%,100%{transform:rotate(15deg) translate(0,0)}
+  50%{transform:rotate(15deg) translate(4px,-6px)}
+}
+
+/* ═══════════════════════════════════════════════════════════
+   BANNER
+   ═══════════════════════════════════════════════════════════ */
+.bio-banner{
+  width:100%;max-width:100%;
+  margin:0 auto 16px;height:110px;
+  border:3px solid var(--ink);border-radius:12px;
+  overflow:hidden;box-shadow:6px 6px 0 var(--ink);
+  background:var(--white);position:relative;
+}
+.bio-banner img,
+.bio-banner video{width:100%;height:100%;object-fit:cover;display:block}
+@media(max-width:480px){
+  .bio-banner{height:95px;margin-bottom:14px}
+}
+
+/* ═══════════════════════════════════════════════════════════
+   AVATAR
+   ═══════════════════════════════════════════════════════════ */
+.bio-avatar{
+  width:110px;height:110px;border-radius:50%;
+  border:4px solid var(--ink);overflow:hidden;
+  background:var(--white);margin:0 auto;
+  box-shadow:6px 6px 0 var(--ink);
+}
+.bio-avatar img{width:100%;height:100%;object-fit:cover}
+.bio-avatar.placeholder{
+  display:grid;place-items:center;
+  font-size:42px;font-weight:900;
+  background:var(--yellow);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   HEADER
+   ═══════════════════════════════════════════════════════════ */
+.bio-header{
+  display:flex;flex-direction:column;align-items:center;
+  margin-bottom:14px;position:relative;
+}
+.bio-title-top{
+  display:inline-block;padding:5px 14px;
+  background:var(--white);color:var(--ink);
+  font-size:13px;font-weight:900;
+  text-transform:uppercase;letter-spacing:1.5px;
+  border:3px solid var(--ink);
+  transform:rotate(-4deg);margin-top:12px;
+  box-shadow:3px 3px 0 var(--ink);z-index:3;
+}
+.bio-name{
+  display:inline-block;padding:7px 18px;
+  background:var(--yellow);color:var(--ink);
+  font-size:21px;font-weight:900;
+  text-transform:uppercase;letter-spacing:.5px;
+  border:3px solid var(--ink);
+  transform:rotate(2deg);margin-top:-4px;
+  box-shadow:5px 5px 0 var(--ink);
+  text-align:center;max-width:100%;
+  word-break:break-word;z-index:2;
+}
+.bio-bio{
+  display:inline-block;padding:6px 14px;
+  background:var(--red);color:var(--white);
+  font-size:12px;font-weight:800;
+  text-transform:uppercase;letter-spacing:.5px;
+  border:3px solid var(--ink);
+  transform:rotate(-2deg);margin-top:-2px;
+  box-shadow:4px 4px 0 var(--ink);
+  text-align:center;max-width:100%;
+  word-break:break-word;z-index:1;
+}
+.bio-plan-badge{
+  display:inline-block;padding:3px 12px;
+  background:var(--ink);color:var(--yellow);
+  font-size:10px;font-weight:900;
+  text-transform:uppercase;letter-spacing:1.5px;
+  border:2px solid var(--yellow);border-radius:999px;
+  margin-top:10px;box-shadow:2px 2px 0 var(--ink);
+}
+.bio-plan-badge.starter{
+  background:var(--green);color:#fff;border-color:var(--ink);
+}
+.bio-plan-badge.pro{
+  background:var(--blue);color:#fff;border-color:var(--ink);
+}
+.bio-plan-badge.ultimate{
+  background:var(--ink);color:var(--yellow);border-color:var(--yellow);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   LOGOS PARTNER
+   ═══════════════════════════════════════════════════════════ */
+.bio-logos{
+  display:flex;justify-content:center;
+  align-items:center;gap:10px;flex-wrap:wrap;
+  margin-bottom:14px;margin-top:4px;
+}
+.bio-logo-item{
+  width:44px;height:44px;border-radius:50%;
+  border:2.5px solid var(--ink);background:var(--white);
+  overflow:hidden;display:grid;place-items:center;
+  box-shadow:3px 3px 0 var(--ink);
+}
+.bio-logo-item img{
+  width:100%;height:100%;object-fit:contain;padding:4px;
+}
+.bio-logo-item .fallback{
+  font-weight:900;font-size:14px;color:var(--ink);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   LINKS
+   ═══════════════════════════════════════════════════════════ */
+.bio-links{display:flex;flex-direction:column;gap:14px}
+
+.bio-link{
+  display:flex;align-items:center;justify-content:center;
+  gap:10px;padding:15px 18px;
+  border:3px solid var(--ink);border-radius:12px;
+  font-weight:900;font-size:14.5px;
+  text-transform:uppercase;letter-spacing:.5px;
+  position:relative;
+  box-shadow:6px 6px 0 var(--ink);
+  cursor:pointer;min-height:56px;
+  background:var(--white);color:var(--ink);
+  animation:linkFadeIn .4s ease both;
+  transition:transform .1s, box-shadow .1s;
+}
+@keyframes linkFadeIn{
+  from{opacity:0;transform:translateY(10px)}
+  to{opacity:1;transform:translateY(0)}
+}
+.bio-link:hover{
+  transform:translate(-2px,-2px);
+  box-shadow:8px 8px 0 var(--ink);
+}
+.bio-link:active{
+  transform:translate(4px,4px);
+  box-shadow:0 0 0 var(--ink);
+}
+.bio-link .licon{
+  width:22px;height:22px;
+  display:grid;place-items:center;flex-shrink:0;
+}
+.bio-link .licon svg{
+  width:100%;height:100%;
+  stroke:currentColor;fill:none;
+  stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;
+}
+.bio-link .ltext{flex:1;text-align:center}
+
+/* ═══════════════════════════════════════════════════════════
+   FEATURED LINK
+   ═══════════════════════════════════════════════════════════ */
+.bio-link.bio-featured{
+  display:flex;flex-direction:column;
+  align-items:stretch;padding:0;overflow:hidden;
+  gap:0;background:var(--feat-bg,var(--white));
+  color:var(--feat-fg,var(--ink));
+  min-height:0;position:relative;
+  border:3px solid var(--ink);border-radius:12px;
+  box-shadow:6px 6px 0 var(--ink);
+}
+.bio-link.bio-featured:hover{
+  transform:translate(-2px,-2px);
+  box-shadow:8px 8px 0 var(--ink);
+}
+.bio-link.bio-featured .feat-img-wrap{
+  padding:var(--feat-padding,10px);
+  display:flex;justify-content:center;
+  align-items:center;width:100%;
+  background:var(--feat-bg,var(--white));
+}
+.bio-link.bio-featured .feat-img{
+  width:80%;height:auto;
+  aspect-ratio:var(--feat-ratio,16/9);
+  object-fit:cover;
+  object-position:var(--feat-pos-x,50%) var(--feat-pos-y,50%);
+  transform:scale(var(--feat-zoom,1));
+  transform-origin:var(--feat-pos-x,50%) var(--feat-pos-y,50%);
+  border:2.5px solid var(--ink);border-radius:8px;
+  display:block;background:var(--white);
+}
+.bio-link.bio-featured .feat-body{
+  padding:10px 14px 12px;text-align:center;
+  background:var(--feat-bg,var(--white));
+  color:var(--feat-fg,var(--ink));
+}
+.bio-link.bio-featured .feat-body b{
+  font-size:14.5px;font-weight:900;
+  text-transform:uppercase;letter-spacing:.5px;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   EMBED
+   ═══════════════════════════════════════════════════════════ */
+.bio-embed{
+  border:3px solid var(--ink);border-radius:12px;
+  overflow:hidden;box-shadow:6px 6px 0 var(--ink);
+  background:var(--white);
+}
+.bio-embed iframe{
+  width:100%;display:block;border:none;aspect-ratio:16/9;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   FOOTER / WATERMARK
+   ═══════════════════════════════════════════════════════════ */
+.bio-footer{
+  margin-top:28px;font-size:11px;
+  color:var(--ink);font-weight:800;
+  text-transform:uppercase;letter-spacing:1px;
+  background:var(--white);border:2px solid var(--ink);
+  padding:6px 12px;border-radius:20px;
+  box-shadow:2px 2px 0 var(--ink);
+  display:inline-block;align-self:center;
+}
+.bio-footer a{
+  color:var(--ink);font-weight:900;
+  text-decoration:underline;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   CTA FLOAT
+   ═══════════════════════════════════════════════════════════ */
+.bio-cta-float{
+  position:fixed;bottom:16px;right:16px;z-index:9990;
+  display:inline-flex;align-items:center;gap:6px;
+  background:var(--ink);color:var(--yellow);
+  font-weight:900;font-size:11px;
+  text-transform:uppercase;letter-spacing:.5px;
+  padding:8px 14px;border-radius:999px;
+  border:2.5px solid var(--yellow);
+  box-shadow:3px 3px 0 var(--yellow);
+  animation:ctaBounce 2.5s ease-in-out infinite;
+}
+@keyframes ctaBounce{
+  0%,100%{transform:translateY(0)}
+  50%{transform:translateY(-3px)}
+}
+
+/* ═══════════════════════════════════════════════════════════
+   17 TEMA WARNA
+   ═══════════════════════════════════════════════════════════ */
+.theme-neo-cream{
+  background-color:#f0ebe0;color:var(--ink);
+  background-image:
+    radial-gradient(circle,#0a0a0a 1.4px,transparent 1.4px),
+    radial-gradient(circle,#0a0a0a 1.4px,transparent 1.4px);
+  background-size:20px 20px,20px 20px;
+  background-position:0 0,10px 10px;
+  animation:dotsFlow 24s linear infinite;
+}
 @keyframes dotsFlow{
   from{background-position:0 0,10px 10px}
   to{background-position:400px -400px,410px -390px}
 }
-.bio-deco{position:fixed;pointer-events:none;z-index:1}
-.bio-deco.d1{width:60px;height:60px;top:8%;left:6%;background:var(--red);
-  border:3px solid var(--ink);transform:rotate(-12deg);box-shadow:5px 5px 0 var(--ink);
-  animation:deco1 6s ease-in-out infinite}
-.bio-deco.d2{width:38px;height:38px;top:16%;right:8%;background:var(--blue);
-  border:3px solid var(--ink);border-radius:50%;transform:rotate(20deg);
-  box-shadow:4px 4px 0 var(--ink);animation:deco2 7s ease-in-out infinite}
-.bio-deco.d3{width:44px;height:44px;bottom:20%;right:6%;background:var(--yellow);
-  border:3px solid var(--ink);transform:rotate(15deg);box-shadow:4px 4px 0 var(--ink);
-  animation:deco3 8s ease-in-out infinite}
-@keyframes deco1{0%,100%{transform:rotate(-12deg) translate(0,0)}
-  50%{transform:rotate(-12deg) translate(6px,-8px)}}
-@keyframes deco2{0%,100%{transform:rotate(20deg) translate(0,0)}
-  50%{transform:rotate(20deg) translate(-6px,8px)}}
-@keyframes deco3{0%,100%{transform:rotate(15deg) translate(0,0)}
-  50%{transform:rotate(15deg) translate(4px,-6px)}}
-
-.bio-wrap{min-height:100vh;width:100%;position:relative;overflow-x:hidden;
-  color:var(--ink);padding:34px 18px 60px;
-  display:flex;flex-direction:column;align-items:center;font-weight:700;z-index:2}
-.bio-inner{width:100%;max-width:420px;position:relative;z-index:2}
-
-/* ===== BANNER KURUS (DI ATAS PROFIL) — v23 ===== */
-.bio-banner{width:100%;max-width:100%;margin:0 auto 16px;height:110px;
-  border:3px solid var(--ink);border-radius:12px;overflow:hidden;
-  box-shadow:6px 6px 0 var(--ink);background:var(--white);position:relative}
-.bio-banner img,.bio-banner video{width:100%;height:100%;object-fit:cover;display:block}
-@media(max-width:480px){.bio-banner{height:95px;margin-bottom:14px}}
-
-.bio-avatar{width:110px;height:110px;border-radius:50%;border:4px solid var(--ink);
-  overflow:hidden;background:var(--white);margin:0 auto;
-  box-shadow:6px 6px 0 var(--ink);transition:transform .15s, box-shadow .15s}
-.bio-avatar img{width:100%;height:100%;object-fit:cover}
-.bio-avatar video{width:100%;height:100%;object-fit:cover}
-.bio-avatar:active{transform:translate(3px,3px);box-shadow:0 0 0 var(--ink)}
-.bio-header{display:flex;flex-direction:column;align-items:center;
-  margin-bottom:14px;position:relative}
-.bio-title-top{display:inline-block;padding:5px 14px;background:var(--white);
-  color:var(--ink);font-size:13px;font-weight:900;text-transform:uppercase;
-  letter-spacing:1.5px;border:3px solid var(--ink);transform:rotate(-4deg);
-  margin-top:12px;box-shadow:3px 3px 0 var(--ink);z-index:3}
-.bio-name{display:inline-block;padding:7px 18px;background:var(--yellow);
-  color:var(--ink);font-size:21px;font-weight:900;text-transform:uppercase;
-  letter-spacing:.5px;border:3px solid var(--ink);transform:rotate(2deg);
-  margin-top:-4px;box-shadow:5px 5px 0 var(--ink);text-align:center;max-width:100%;
-  word-break:break-word;z-index:2}
-.bio-bio{display:inline-block;padding:6px 14px;background:var(--red);color:var(--white);
-  font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;
-  border:3px solid var(--ink);transform:rotate(-2deg);margin-top:-2px;
-  box-shadow:4px 4px 0 var(--ink);text-align:center;max-width:100%;
-  word-break:break-word;z-index:1}
-.bio-plan-badge{display:inline-block;padding:3px 12px;background:var(--ink);
-  color:var(--yellow);font-size:10px;font-weight:900;text-transform:uppercase;
-  letter-spacing:1.5px;border:2px solid var(--yellow);border-radius:999px;
-  margin-top:10px;box-shadow:2px 2px 0 var(--ink)}
-.bio-plan-badge.starter{background:var(--green);color:#fff;border-color:var(--ink)}
-.bio-plan-badge.pro{background:var(--blue);color:#fff;border-color:var(--ink)}
-.bio-plan-badge.ultimate{background:var(--ink);color:var(--yellow);border-color:var(--yellow)}
-
-.bio-logos{display:flex;justify-content:center;align-items:center;gap:10px;
-  flex-wrap:wrap;margin-bottom:14px;margin-top:4px}
-.bio-logo-item{width:44px;height:44px;border-radius:50%;border:2.5px solid var(--ink);
-  background:var(--white);overflow:hidden;display:grid;place-items:center;
-  box-shadow:3px 3px 0 var(--ink);transition:transform .15s, box-shadow .15s}
-.bio-logo-item img{width:100%;height:100%;object-fit:contain;padding:4px}
-.bio-logo-item:hover{transform:translate(-2px,-2px);box-shadow:5px 5px 0 var(--ink)}
-
-.bio-links{display:flex;flex-direction:column;gap:14px}
-.bio-link{display:flex;align-items:center;justify-content:center;gap:10px;
-  padding:15px 18px;border:3px solid var(--ink);border-radius:12px;
-  font-weight:900;font-size:14.5px;text-transform:uppercase;letter-spacing:.5px;
-  position:relative;transition:transform .12s, box-shadow .12s;
-  box-shadow:6px 6px 0 var(--ink);cursor:pointer;min-height:56px;
-  background:var(--white);color:var(--ink);animation:linkFadeIn .4s ease both}
-@keyframes linkFadeIn{from{opacity:0;transform:translateY(10px)}
-  to{opacity:1;transform:translateY(0)}}
-.bio-link:hover{transform:translate(-2px,-2px);box-shadow:8px 8px 0 var(--ink)}
-.bio-link:active{transform:translate(4px,4px);box-shadow:0 0 0 var(--ink)}
-.bio-link .licon{width:22px;height:22px;display:grid;place-items:center;flex-shrink:0}
-.bio-link .ltext{flex:1;text-align:center}
-.bio-link.bio-featured{flex-direction:column;align-items:stretch;padding:0;
-  overflow:hidden;gap:0;background:var(--white);color:var(--ink);min-height:0}
-.bio-link.bio-featured .feat-img{width:100%;height:130px;object-fit:cover;
-  border-bottom:3px solid var(--ink);display:block;background:var(--yellow)}
-.bio-link.bio-featured .feat-body{padding:12px 14px;text-align:center}
-.bio-link.bio-featured .feat-body b{font-size:14.5px;font-weight:900;text-transform:uppercase}
-.bio-embed{border:3px solid var(--ink);border-radius:12px;overflow:hidden;
-  box-shadow:6px 6px 0 var(--ink);background:var(--white)}
-.bio-embed iframe{width:100%;display:block;border:none;aspect-ratio:16/9}
-.bio-footer{margin-top:28px;font-size:11px;color:var(--ink);font-weight:800;
-  text-transform:uppercase;letter-spacing:1px;background:var(--white);
-  border:2px solid var(--ink);padding:6px 12px;border-radius:20px;
-  box-shadow:2px 2px 0 var(--ink);display:inline-block}
-.bio-footer a{color:var(--ink);font-weight:900;text-decoration:underline}
-
-/* CTA FLOATING */
-.bio-cta-float{position:fixed;bottom:16px;right:16px;z-index:9990;
-  display:inline-flex;align-items:center;gap:6px;
-  background:var(--ink);color:var(--yellow);font-weight:900;font-size:11px;
-  text-transform:uppercase;letter-spacing:.5px;text-decoration:none;
-  padding:8px 14px;border-radius:999px;border:2.5px solid var(--yellow);
-  box-shadow:3px 3px 0 var(--yellow);animation:ctaBounce 2.5s ease-in-out infinite}
-.bio-cta-float:hover{transform:translate(-1px,-1px);box-shadow:4px 4px 0 var(--yellow)}
-@keyframes ctaBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
-
-/* ANIMASI */
-.bio-wrap.anim-bounce .bio-link:hover{animation:linkBounce .4s ease}
-@keyframes linkBounce{0%,100%{transform:translate(-2px,-2px)}
-  50%{transform:translate(-2px,-8px)}}
-.bio-wrap.anim-shake .bio-link:active{animation:linkShake .3s ease}
-@keyframes linkShake{0%,100%{transform:translate(4px,4px)}
-  25%{transform:translate(0px,4px)}75%{transform:translate(8px,4px)}}
-.bio-wrap.anim-glow .bio-link:hover{box-shadow:8px 8px 0 var(--ink),0 0 24px var(--yellow)}
-
-/* THEMES */
-.theme-neo-cream{background-color:#f0ebe0;
-  background-image:radial-gradient(circle,#0a0a0a 1.4px,transparent 1.4px),
-    radial-gradient(circle,#0a0a0a 1.4px,transparent 1.4px);
-  background-size:20px 20px,20px 20px;background-position:0 0,10px 10px;
-  animation:dotsFlow 24s linear infinite}
-.theme-neo-dark{background-color:#0a0a0a;color:#fff;
-  background-image:radial-gradient(circle,#fff 1.4px,transparent 1.4px),
+.theme-neo-midnight{
+  background-color:#1e293b;color:#e2e8f0;
+  background-image:
+    radial-gradient(circle,#94a3b8 1.4px,transparent 1.4px),
+    radial-gradient(circle,#94a3b8 1.4px,transparent 1.4px);
+  background-size:20px 20px,20px 20px;
+  background-position:0 0,10px 10px;
+}
+.theme-neo-midnight .bio-link{
+  background:#0f172a;color:#e2e8f0;border-color:#e2e8f0;
+}
+.theme-neo-dark{
+  background-color:#0a0a0a;color:#fff;
+  background-image:
+    radial-gradient(circle,#fff 1.4px,transparent 1.4px),
     radial-gradient(circle,#fff 1.4px,transparent 1.4px);
-  background-size:20px 20px,20px 20px;background-position:0 0,10px 10px;
-  animation:dotsFlow 24s linear infinite}
-.theme-neo-dark .bio-avatar{border-color:#fff;box-shadow:6px 6px 0 var(--yellow)}
-.theme-neo-dark .bio-title-top{background:var(--yellow);color:var(--ink);border-color:#fff}
-.theme-neo-dark .bio-name{background:var(--red);color:#fff;border-color:#fff;box-shadow:5px 5px 0 var(--yellow)}
-.theme-neo-dark .bio-bio{background:var(--blue);color:#fff;border-color:#fff}
-.theme-neo-dark .bio-link{background:var(--white);color:var(--ink);border-color:#fff;box-shadow:6px 6px 0 var(--yellow)}
-.theme-neo-dark .bio-banner,.theme-neo-dark .bio-embed{border-color:#fff}
-.theme-neo-dark .bio-footer{background:var(--yellow);color:var(--ink);border-color:#fff;box-shadow:2px 2px 0 var(--red)}
-.theme-neo-dark .bio-logo-item{border-color:#fff;box-shadow:3px 3px 0 var(--yellow)}
-.theme-neo-blue{background-color:#2563eb;color:#fff;
-  background-image:radial-gradient(circle,#fff 1.4px,transparent 1.4px),
+  background-size:20px 20px,20px 20px;
+  background-position:0 0,10px 10px;
+}
+.theme-neo-dark .bio-link{background:#1a1a1a;color:#fff}
+.theme-neo-blue{
+  background-color:#2563eb;color:#fff;
+  background-image:
+    radial-gradient(circle,#fff 1.4px,transparent 1.4px),
     radial-gradient(circle,#fff 1.4px,transparent 1.4px);
-  background-size:20px 20px,20px 20px;background-position:0 0,10px 10px;
-  animation:dotsFlow 24s linear infinite}
-.theme-neo-blue .bio-avatar{border-color:#fff;box-shadow:6px 6px 0 var(--yellow)}
-.theme-neo-blue .bio-title-top{background:var(--white);color:var(--ink);border-color:var(--ink)}
-.theme-neo-blue .bio-name{background:var(--yellow);color:var(--ink);border-color:var(--ink);box-shadow:5px 5px 0 var(--ink)}
-.theme-neo-blue .bio-bio{background:var(--pink);color:var(--ink);border-color:var(--ink)}
-.theme-neo-blue .bio-link{background:var(--white);color:var(--ink);border-color:var(--ink);box-shadow:6px 6px 0 var(--ink)}
-.theme-neo-blue .bio-footer{background:var(--yellow);color:var(--ink);border-color:var(--ink);box-shadow:2px 2px 0 var(--pink)}
-.theme-neo-pink{background-color:#ff69b4;color:var(--ink);
-  background-image:radial-gradient(circle,#0a0a0a 1.4px,transparent 1.4px),
+  background-size:20px 20px,20px 20px;
+  background-position:0 0,10px 10px;
+}
+.theme-neo-blue .bio-link{background:#fff;color:#2563eb}
+.theme-neo-rose{
+  background-color:#f43f5e;color:#fff;
+  background-image:
+    radial-gradient(circle,#fff 1.4px,transparent 1.4px),
+    radial-gradient(circle,#fff 1.4px,transparent 1.4px);
+  background-size:20px 20px,20px 20px;
+  background-position:0 0,10px 10px;
+}
+.theme-neo-rose .bio-link{background:#fff;color:#f43f5e}
+.theme-neo-pink{
+  background-color:#ff69b4;color:var(--ink);
+  background-image:
+    radial-gradient(circle,#0a0a0a 1.4px,transparent 1.4px),
     radial-gradient(circle,#0a0a0a 1.4px,transparent 1.4px);
-  background-size:20px 20px,20px 20px;background-position:0 0,10px 10px;
-  animation:dotsFlow 24s linear infinite}
-.theme-neo-pink .bio-avatar{border-color:var(--ink);box-shadow:6px 6px 0 var(--yellow)}
-.theme-neo-pink .bio-name{background:var(--white);color:var(--ink);border-color:var(--ink)}
-.theme-neo-pink .bio-bio{background:var(--ink);color:var(--yellow);border-color:var(--ink)}
-.theme-neo-green{background-color:#22c55e;color:var(--ink);
-  background-image:radial-gradient(circle,#0a0a0a 1.4px,transparent 1.4px),
+  background-size:20px 20px,20px 20px;
+  background-position:0 0,10px 10px;
+}
+.theme-neo-green{
+  background-color:#22c55e;color:var(--ink);
+  background-image:
+    radial-gradient(circle,#0a0a0a 1.4px,transparent 1.4px),
     radial-gradient(circle,#0a0a0a 1.4px,transparent 1.4px);
-  background-size:20px 20px,20px 20px;background-position:0 0,10px 10px;
-  animation:dotsFlow 24s linear infinite}
-.theme-neo-green .bio-avatar{border-color:var(--ink);box-shadow:6px 6px 0 var(--yellow)}
-.theme-neo-green .bio-name{background:var(--yellow);color:var(--ink);border-color:var(--ink)}
-.theme-neo-green .bio-bio{background:var(--ink);color:#fff;border-color:var(--ink)}
-.theme-neo-purple{background-color:#a78bfa;color:var(--ink);
-  background-image:radial-gradient(circle,#0a0a0a 1.4px,transparent 1.4px),
+  background-size:20px 20px,20px 20px;
+  background-position:0 0,10px 10px;
+}
+.theme-neo-purple{
+  background-color:#a78bfa;color:var(--ink);
+  background-image:
+    radial-gradient(circle,#0a0a0a 1.4px,transparent 1.4px),
     radial-gradient(circle,#0a0a0a 1.4px,transparent 1.4px);
-  background-size:20px 20px,20px 20px;background-position:0 0,10px 10px;
-  animation:dotsFlow 24s linear infinite}
-.theme-neo-purple .bio-avatar{border-color:var(--ink);box-shadow:6px 6px 0 var(--pink)}
-.theme-neo-purple .bio-name{background:var(--yellow);color:var(--ink);border-color:var(--ink)}
-.theme-neo-purple .bio-bio{background:var(--pink);color:var(--ink);border-color:var(--ink)}
+  background-size:20px 20px,20px 20px;
+  background-position:0 0,10px 10px;
+}
+.theme-neo-orange{
+  background-color:#ff8c00;color:var(--ink);
+  background-image:
+    radial-gradient(circle,#0a0a0a 1.4px,transparent 1.4px),
+    radial-gradient(circle,#0a0a0a 1.4px,transparent 1.4px);
+  background-size:20px 20px,20px 20px;
+  background-position:0 0,10px 10px;
+}
+.theme-neo-ocean{
+  background-color:#0ea5e9;color:var(--ink);
+  background-image:
+    radial-gradient(circle,#fff 1.4px,transparent 1.4px),
+    radial-gradient(circle,#fff 1.4px,transparent 1.4px);
+  background-size:20px 20px,20px 20px;
+  background-position:0 0,10px 10px;
+}
+.theme-neo-coffee{
+  background-color:#78350f;color:#fef3c7;
+  background-image:
+    radial-gradient(circle,#fef3c7 1.4px,transparent 1.4px),
+    radial-gradient(circle,#fef3c7 1.4px,transparent 1.4px);
+  background-size:20px 20px,20px 20px;
+  background-position:0 0,10px 10px;
+}
+.theme-neo-coffee .bio-link{background:#fef3c7;color:#78350f}
+.theme-neo-sunset{
+  color:var(--ink);
+  background:linear-gradient(135deg,#ff8c00 0%,#ff6b35 35%,#ff69b4 70%,#a78bfa 100%);
+  background-size:200% 200%;
+  animation:sunsetShift 15s ease-in-out infinite;
+}
+@keyframes sunsetShift{
+  0%,100%{background-position:0% 50%}
+  50%{background-position:100% 50%}
+}
+.theme-neo-galaxy{
+  color:#fff;
+  background:linear-gradient(135deg,#0a0a0a 0%,#1a0a2e 50%,#0a0a0a 100%);
+  background-size:200% 200%;
+  animation:galaxyShift 20s ease-in-out infinite;
+}
+@keyframes galaxyShift{
+  0%,100%{background-position:0% 50%}
+  50%{background-position:100% 50%}
+}
+.theme-neo-galaxy .bio-link{
+  background:rgba(30,20,60,.8);color:#e0e0ff;border-color:#a78bfa;
+}
+.theme-neo-galaxy .bio-name{
+  background:linear-gradient(135deg,#a78bfa,#ff69b4);
+  color:#fff;border-color:#a78bfa;
+}
+.theme-neo-neon{
+  background-color:#0a0a14;color:#00ffcc;
+  background-image:
+    radial-gradient(circle,#00ffcc 1.4px,transparent 1.4px),
+    radial-gradient(circle,#ff00ff 1.4px,transparent 1.4px);
+  background-size:20px 20px,20px 20px;
+  background-position:0 0,10px 10px;
+}
+.theme-neo-neon .bio-link{
+  background:#0a0a14;color:#00ffcc;border-color:#00ffcc;
+  box-shadow:4px 4px 0 #ff00ff;
+}
+.theme-neo-neon .bio-name{
+  background:#ff00ff;color:#0a0a14;border-color:#00ffcc;
+}
+.theme-neo-neon .bio-bio{background:#00ffcc;color:#0a0a14}
+.theme-neo-retro{
+  background-color:#ff00ff;color:#00ffff;
+  background-image:
+    linear-gradient(45deg,#00ffff 25%,transparent 25%,transparent 75%,#00ffff 75%),
+    linear-gradient(45deg,#00ffff 25%,transparent 25%,transparent 75%,#00ffff 75%);
+  background-size:20px 20px;
+  background-position:0 0,10px 10px;
+}
+.theme-neo-retro .bio-link{background:#fff;color:#ff00ff;border-color:#000}
+.theme-neo-retro .bio-name{background:#ffff00;color:#ff00ff;border-color:#000}
+.theme-neo-retro .bio-bio{background:#00ffff;color:#000}
+.theme-neo-sakura{
+  background-color:#fce7f3;color:#831843;
+  background-image:
+    radial-gradient(circle,#f9a8d4 1.4px,transparent 1.4px),
+    radial-gradient(circle,#f9a8d4 1.4px,transparent 1.4px);
+  background-size:20px 20px,20px 20px;
+  background-position:0 0,10px 10px;
+}
+.theme-neo-sakura .bio-name{background:#f9a8d4;color:#831843}
+.theme-neo-sakura .bio-bio{background:#be185d;color:#fff}
+.theme-neo-gold{
+  background-color:#0a0a0a;color:#d4af37;
+  background-image:
+    linear-gradient(90deg,rgba(212,175,55,.05) 1px,transparent 1px),
+    linear-gradient(rgba(212,175,55,.05) 1px,transparent 1px);
+  background-size:20px 20px,20px 20px;
+}
+.theme-neo-gold .bio-link{
+  background:#0a0a0a;color:#d4af37;border-color:#d4af37;
+}
+.theme-neo-gold .bio-name{background:#d4af37;color:#0a0a0a}
+.theme-neo-gold .bio-bio{background:#8b6914;color:#fff}
 
-/* LOCK */
-.lock-overlay{position:fixed;inset:0;background:rgba(240,235,224,.96);z-index:9998;
-  display:grid;place-items:center;padding:18px}
-.lock-card{background:var(--white);border:3px solid var(--ink);border-radius:14px;
-  padding:28px;max-width:340px;width:100%;text-align:center;
-  box-shadow:8px 8px 0 var(--red)}
-.lock-card .li{width:56px;height:56px;background:var(--ink);color:var(--yellow);
-  border-radius:50%;display:grid;place-items:center;margin:0 auto 12px}
-.lock-card .li .ic{width:26px;height:26px}
-.lock-card h3{margin-bottom:6px;font-size:16px;text-transform:uppercase;font-weight:900}
-.lock-card p{font-size:13px;margin-bottom:16px;font-weight:600}
-.lock-card input{width:100%;padding:12px;border-radius:10px;border:2.5px solid var(--ink);
-  background:var(--white);color:var(--ink);font-size:14px;outline:none;
-  text-align:center;font-weight:700;font-family:inherit}
-.lock-card button{width:100%;padding:12px;border-radius:10px;border:2.5px solid var(--ink);
-  background:var(--ink);color:var(--white);font-weight:900;cursor:pointer;
-  margin-top:10px;font-size:13.5px;text-transform:uppercase;
-  box-shadow:3px 3px 0 var(--red);transition:transform .1s, box-shadow .1s;
-  font-family:inherit}
+/* ═══════════════════════════════════════════════════════════
+   ANIMASI
+   ═══════════════════════════════════════════════════════════ */
+.anim-bounce .bio-link{animation:animBounce 2s ease-in-out infinite}
+@keyframes animBounce{
+  0%,100%{transform:translateY(0)}
+  50%{transform:translateY(-6px)}
+}
+.anim-shake .bio-link:hover{
+  animation:animShake .4s ease-in-out;
+}
+@keyframes animShake{
+  0%,100%{transform:translate(-2px,-2px) rotate(0)}
+  25%{transform:translate(-2px,-2px) rotate(-2deg)}
+  75%{transform:translate(-2px,-2px) rotate(2deg)}
+}
+.anim-glow .bio-link{
+  box-shadow:6px 6px 0 var(--ink), 0 0 20px rgba(255,215,0,.6);
+}
+.anim-glow .bio-link:hover{
+  box-shadow:8px 8px 0 var(--ink), 0 0 30px rgba(255,215,0,.9);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   LOCK OVERLAY
+   ═══════════════════════════════════════════════════════════ */
+.lock-overlay{
+  position:fixed;inset:0;z-index:9998;
+  background:rgba(240,235,224,.96);
+  display:grid;place-items:center;padding:18px;
+}
+.lock-card{
+  background:var(--white);border:3px solid var(--ink);
+  border-radius:14px;padding:28px;
+  max-width:340px;width:100%;text-align:center;
+  box-shadow:8px 8px 0 var(--red);
+}
+.lock-card .li{
+  width:56px;height:56px;
+  background:var(--ink);color:var(--yellow);
+  border-radius:50%;display:grid;place-items:center;
+  margin:0 auto 12px;font-size:26px;
+}
+.lock-card h3{
+  margin-bottom:6px;font-size:16px;
+  text-transform:uppercase;font-weight:900;
+}
+.lock-card p{
+  font-size:13px;margin-bottom:16px;
+  font-weight:600;color:#555;
+}
+.lock-card input{
+  width:100%;padding:12px;
+  border-radius:10px;border:2.5px solid var(--ink);
+  background:var(--white);color:var(--ink);
+  font-size:14px;outline:none;
+  text-align:center;font-weight:700;
+  font-family:inherit;
+}
+.lock-card button{
+  width:100%;padding:12px;
+  border-radius:10px;border:2.5px solid var(--ink);
+  background:var(--ink);color:var(--white);
+  font-weight:900;cursor:pointer;
+  margin-top:10px;font-size:13.5px;
+  text-transform:uppercase;
+  box-shadow:3px 3px 0 var(--red);
+  font-family:inherit;
+}
+.lock-card .lock-err{
+  color:var(--red);font-size:12px;
+  font-weight:700;margin-top:8px;
+  min-height:16px;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   EMOJI LUCIDE
+   ═══════════════════════════════════════════════════════════ */
+.lucide-emoji{
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  width:1.15em;height:1.15em;
+  vertical-align:-0.2em;
+  flex-shrink:0;
+  line-height:0;
+  color:currentColor;
+}
+.lucide-emoji svg{
+  width:100%;height:100%;
+  display:block;stroke:currentColor;
+}
+span[data-emoji-converted]{display:contents !important}
 </style>
 </head>
 <body>
-
-<div id="app">
-  <div class="loading-screen" id="loading">
-    <div class="spinner"></div>
-    <p>Memuat...</p>
-  </div>
+<div id="app"></div>
+<div class="vb-loading" id="loading">
+  <div class="spinner"></div>
+  <p>Memuat bio...</p>
 </div>
 
+<!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 
-<script>
-/* =========================================================
-   VARLINK — PUBLIC VIEWER v23
-   Hanya render bio publik. Gak ada login/dashboard/editor.
-   Update: banner kurus atas, no watermark (plan), CTA floating,
-           filter active links, badge starter
-   ========================================================= */
+<!-- Lucide (untuk emoji) -->
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js" async
+  onerror="this.onerror=null;var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.js';s.async=true;document.head.appendChild(s)"></script>
 
-const FIREBASE_CONFIG = {
+<!-- PART 2 paste di sini -->
+  <!-- ═══════════════════════════════════════════════════════════
+     VLINK-BIO — JS FINAL v10.0
+     Music auto-play + Emoji Lucide + Analytics
+     by Varoo
+     ═══════════════════════════════════════════════════════════ -->
+
+<script id="vlinkbio-main-js">
+(function(){
+"use strict";
+console.log("%c🔗 Vlink-bio v10.0 loading...","color:#ffd700;font-weight:bold;font-size:14px");
+
+/* ═══════════════════════════════════════════════════════════
+   CONFIG
+   ═══════════════════════════════════════════════════════════ */
+var FIREBASE_CONFIG = {
   apiKey: "AIzaSyCzEZCtXJTLOLVK3xvcpcUQEgSmwcmPXuQ",
   authDomain: "allweb-9dacd.firebaseapp.com",
   projectId: "allweb-9dacd",
@@ -287,327 +691,733 @@ const FIREBASE_CONFIG = {
   appId: "1:876830048672:web:5795f72db6fa8e7a5324c5"
 };
 
-const PARENT_SITE = "https://varlinkbio-site.vercel.app";
+var APP_URL = "https://varlinkbio-site.vercel.app";
+var CLOUDINARY_CLOUD = "lcceusqr";
 
-firebase.initializeApp(FIREBASE_CONFIG);
-const db = firebase.firestore();
-
-const $ = (s, r=document) => r.querySelector(s);
-const $$ = (s, r=document) => [...r.querySelectorAll(s)];
-const esc = (s="") => String(s).replace(/[&<>"']/g, c => ({
-  "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
-}[c]));
-
-const ICONS = {
-  link:'<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
-  user:'<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
-  lock:'<rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
-  youtube:'<path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"/><polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"/>',
-  music:'<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>',
-  video:'<polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>',
-  instagram:'<rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>',
-  whatsapp:'<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>',
-  twitter:'<path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"/>',
-  x:'<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>',
-  back:'<line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>'
-};
-function ico(name, cls=""){
-  const d = ICONS[name] || ICONS.link;
-  return `<svg class="ic ${cls}" viewBox="0 0 24 24">${d}</svg>`;
+/* ═══════════════════════════════════════════════════════════
+   FIREBASE INIT
+   ═══════════════════════════════════════════════════════════ */
+var FB = { app:null, db:null, ready:false };
+try{
+  FB.app = firebase.initializeApp(FIREBASE_CONFIG);
+  FB.db = firebase.firestore();
+  FB.ready = true;
+  console.log("✅ Firebase ready");
+}catch(e){
+  console.error("Firebase init error:", e);
 }
 
-const LinkTypes = {
-  detect(url){
-    if(!url) return "classic";
-    const u = url.toLowerCase();
-    if(u.includes("youtube.com") || u.includes("youtu.be")) return "youtube";
-    if(u.includes("spotify.com")) return "spotify";
-    if(u.includes("tiktok.com")) return "tiktok";
-    if(u.includes("vimeo.com")) return "vimeo";
-    if(u.includes("instagram.com")) return "instagram";
-    if(u.includes("twitter.com") || u.includes("x.com")) return "twitter";
-    if(u.includes("wa.me") || u.includes("whatsapp.com")) return "whatsapp";
-    return "classic";
-  },
-  embed(url){
-    if(!url) return null;
-    const yt = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
-    if(yt) return `https://www.youtube.com/embed/${yt[1]}`;
-    const sp = url.match(/spotify\.com\/(track|album|playlist|episode)\/([A-Za-z0-9]+)/);
-    if(sp) return `https://open.spotify.com/embed/${sp[1]}/${sp[2]}`;
-    const vm = url.match(/vimeo\.com\/(\d+)/);
-    if(vm) return `https://player.vimeo.com/video/${vm[1]}`;
-    const tt = url.match(/tiktok\.com\/.*\/video\/(\d+)/);
-    if(tt) return `https://www.tiktok.com/embed/v2/${tt[1]}`;
-    return null;
-  },
-  icon(url){
-    const t = this.detect(url);
-    return {
-      youtube:"youtube", spotify:"music", tiktok:"video", vimeo:"video",
-      instagram:"instagram", twitter:"twitter", whatsapp:"whatsapp", classic:"link"
-    }[t] || "link";
-  }
-};
+/* ═══════════════════════════════════════════════════════════
+   HELPERS
+   ═══════════════════════════════════════════════════════════ */
+function $(s, r){ try{ return (r||document).querySelector(s); }catch(e){ return null; } }
+function $$(s, r){ try{ return Array.from((r||document).querySelectorAll(s)); }catch(e){ return []; } }
+
+function esc(s){
+  return String(s==null?"":s).replace(/[&<>"']/g, function(c){
+    return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];
+  });
+}
 
 function contrastText(hex){
-  if(!hex) return "#0a0a0a";
-  const h = hex.replace("#","");
-  if(h.length !== 6) return "#0a0a0a";
-  const r = parseInt(h.slice(0,2),16), g = parseInt(h.slice(2,4),16), b = parseInt(h.slice(4,6),16);
-  const lum = (0.299*r + 0.587*g + 0.114*b)/255;
-  return lum > 0.6 ? "#0a0a0a" : "#ffffff";
+  try{
+    if(!hex) return "#0a0a0a";
+    var c = String(hex).trim();
+    if(c.startsWith("linear-gradient")) return "#ffffff";
+    if(!c.startsWith("#")) c = "#" + c;
+    if(c.length === 4) c = "#" + c[1]+c[1]+c[2]+c[2]+c[3]+c[3];
+    if(c.length !== 7) return "#0a0a0a";
+    var r = parseInt(c.slice(1,3),16);
+    var g = parseInt(c.slice(3,5),16);
+    var b = parseInt(c.slice(5,7),16);
+    var lum = (0.299*r + 0.587*g + 0.114*b) / 255;
+    return lum > 0.6 ? "#0a0a0a" : "#ffffff";
+  }catch(e){ return "#0a0a0a"; }
 }
 
-async function getBio(idOrSlug){
-  try{
-    const d = await db.collection("bios").doc(idOrSlug).get();
-    if(d.exists) return { id:d.id, ...d.data() };
-  }catch(e){}
+/* ═══════════════════════════════════════════════════════════
+   ICON SVG (buat link icons)
+   ═══════════════════════════════════════════════════════════ */
+var ICON_PATHS = {
+  link:'<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
+  instagram:'<rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>',
+  tiktok:'<path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"/>',
+  youtube:'<path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"/><polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"/>',
+  whatsapp:'<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>',
+  music:'<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>',
+  twitter:'<path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"/>',
+  video:'<polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>',
+  mail:'<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>',
+  user:'<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>'
+};
 
-  const q = await db.collection("bios").where("slug","==",idOrSlug).limit(1).get();
-  if(!q.empty){
-    const doc = q.docs[0];
-    return { id:doc.id, ...doc.data() };
-  }
+function iconSvg(name){
+  var d = ICON_PATHS[name] || ICON_PATHS.link;
+  return '<svg viewBox="0 0 24 24">' + d + '</svg>';
+}
+
+function detectLinkType(url){
+  if(!url) return "classic";
+  var u = url.toLowerCase();
+  if(u.indexOf("youtube.com") !== -1 || u.indexOf("youtu.be") !== -1) return "youtube";
+  if(u.indexOf("spotify.com") !== -1) return "spotify";
+  if(u.indexOf("tiktok.com") !== -1) return "tiktok";
+  if(u.indexOf("vimeo.com") !== -1) return "vimeo";
+  if(u.indexOf("instagram.com") !== -1) return "instagram";
+  if(u.indexOf("twitter.com") !== -1 || u.indexOf("x.com") !== -1) return "twitter";
+  if(u.indexOf("wa.me") !== -1 || u.indexOf("whatsapp.com") !== -1) return "whatsapp";
+  if(u.indexOf("t.me") !== -1) return "telegram";
+  return "classic";
+}
+
+function getLinkIcon(url){
+  var t = detectLinkType(url);
+  var map = {
+    youtube:"youtube", spotify:"music", tiktok:"video", vimeo:"video",
+    instagram:"instagram", twitter:"twitter", whatsapp:"whatsapp",
+    telegram:"mail", classic:"link"
+  };
+  return map[t] || "link";
+}
+
+function getEmbedUrl(url){
+  if(!url) return null;
+  var yt = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
+  if(yt) return "https://www.youtube.com/embed/" + yt[1];
+  var sp = url.match(/spotify\.com\/(track|album|playlist|episode)\/([A-Za-z0-9]+)/);
+  if(sp) return "https://open.spotify.com/embed/" + sp[1] + "/" + sp[2];
+  var vm = url.match(/vimeo\.com\/(\d+)/);
+  if(vm) return "https://player.vimeo.com/video/" + vm[1];
+  var tt = url.match(/tiktok\.com\/.*\/video\/(\d+)/);
+  if(tt) return "https://www.tiktok.com/embed/v2/" + tt[1];
   return null;
 }
 
-/* =========================================================
-   RENDER BIO v23
-   ========================================================= */
-function renderBio(d){
-  const NEO_COLORS = ["red","yellow","green","blue","pink","purple","white"];
-  const NEO_HEX = {
-    red:"#ff2a2a", yellow:"#ffd700", green:"#22c55e",
-    blue:"#2563eb", pink:"#ff69b4", purple:"#a78bfa", white:"#ffffff"
-  };
+/* ═══════════════════════════════════════════════════════════
+   EMOJI → LUCIDE
+   ═══════════════════════════════════════════════════════════ */
+var EMOJI_MAP = {
+  "🤖":"bot","🔊":"volume-2","🔇":"volume-x","📢":"megaphone",
+  "🎵":"music","🎶":"music","🎤":"mic","🎧":"headphones",
+  "✅":"check-circle","❌":"x-circle","⚠️":"alert-triangle",
+  "⭐":"star","✨":"sparkles","🔥":"flame","⚡":"zap",
+  "❤️":"heart","💰":"coins","💳":"credit-card","📱":"smartphone",
+  "💻":"laptop","🎮":"gamepad-2","🎨":"palette","📊":"bar-chart-3",
+  "📈":"trending-up","📉":"trending-down","🏆":"trophy",
+  "🔒":"lock","🔓":"unlock","🔑":"key","⚙️":"settings",
+  "🔧":"wrench","🔔":"bell","🔍":"search","🔗":"link",
+  "📌":"pin","📍":"map-pin","📝":"file-edit","📁":"folder",
+  "📦":"package","🎁":"gift","🛒":"shopping-cart","👤":"user",
+  "👥":"users","🚀":"rocket","🎯":"target","💡":"lightbulb",
+  "🎉":"party-popper","🙂":"smile","😀":"smile","😊":"smile",
+  "😍":"heart","😂":"laugh","🎬":"film","📸":"camera",
+  "🖼️":"image","🌐":"globe","🗺️":"map","🧭":"compass",
+  "🏠":"home","🏢":"building","🏪":"store","📅":"calendar",
+  "⏰":"clock","✔️":"check","➕":"plus","➖":"minus",
+  "✖️":"x","🌞":"sun","🌙":"moon","🌈":"rainbow",
+  "🍕":"pizza","🍔":"sandwich","☕":"coffee","🍺":"beer"
+};
 
-  // Filter link yang aktif saja
-  const activeLinks = (d.links||[]).filter(l => l.active !== false);
-
-  const links = activeLinks.map((l,idx)=>{
-    const embed = LinkTypes.embed(l.url);
-    const type = LinkTypes.detect(l.url);
-    const autoColor = NEO_COLORS[idx % NEO_COLORS.length];
-    const bg = l.color || NEO_HEX[autoColor];
-    const fg = contrastText(bg);
-
-    if(l.thumb){
-      return `<a class="bio-link bio-featured" href="${esc(l.url)}" target="_blank" rel="noopener" data-click="${idx}">
-        <img class="feat-img" src="${esc(l.thumb)}" alt=""/>
-        <div class="feat-body"><b>${esc(l.label||"Link")}</b></div>
-      </a>`;
-    }
-
-    if(embed && ["youtube","spotify","vimeo","tiktok"].includes(type)){
-      return `<div class="bio-embed"><iframe src="${esc(embed)}" allowfullscreen allow="autoplay; encrypted-media; picture-in-picture"></iframe></div>`;
-    }
-
-    return `<a class="bio-link" href="${esc(l.url)}" target="_blank" rel="noopener" data-click="${idx}"
-      style="background:${esc(bg)};color:${fg}">
-      <span class="licon">${ico(LinkTypes.icon(l.url))}</span>
-      <span class="ltext">${esc(l.label||"Link")}</span>
-    </a>`;
+function pascalCase(str){
+  return String(str||"").split("-").map(function(s){
+    return s.charAt(0).toUpperCase() + s.slice(1);
   }).join("");
+}
 
-  const profileBlock = d.profile
-    ? (d.profileType==="video"
-        ? `<video src="${esc(d.profile)}" autoplay muted loop playsinline></video>`
-        : `<img src="${esc(d.profile)}" alt=""/>`)
-    : `<div style="width:100%;height:100%;display:grid;place-items:center;color:var(--ink)">${ico('user')}</div>`;
-
-  // ===== BANNER DI ATAS + KURUS =====
-  const bannerBlock = d.banner
-    ? `<div class="bio-banner">${
-        d.bannerType==="video"
-          ? `<video src="${esc(d.banner)}" autoplay muted loop playsinline></video>`
-          : `<img src="${esc(d.banner)}" alt=""/>`
-      }</div>`
-    : "";
-
-  const bioText = d.bio ? `<div class="bio-bio">${esc(d.bio)}</div>` : "";
-
-  // Badge dengan STARTER (v23)
-  const badgeMap = { starter:"STARTER", pro:"PRO", ultimate:"ULTIMATE" };
-  const badge = badgeMap[d.ownerPlan] || "";
-  const badgeHtml = badge ? `<div class="bio-plan-badge ${d.ownerPlan}">${badge}</div>` : "";
-
-  const logosHtml = (Array.isArray(d.logos) && d.logos.filter(lg=>lg.img).length)
-    ? `<div class="bio-logos">
-        ${d.logos.filter(lg=>lg.img).map(lg=>`
-          <a class="bio-logo-item" href="${esc(lg.url||"#")}" target="_blank" rel="noopener" title="${esc(lg.name||"")}">
-            <img src="${esc(lg.img)}" alt=""/>
-          </a>`).join("")}
-      </div>`
-    : "";
-
-  const animCls = d.animation && d.animation !== "none" ? `anim-${d.animation}` : "";
-  const themeClass = `theme-${d.theme||"neo-cream"}`;
-  const isLocked = !!d.lock;
-  const bioId = d.id || "";
-
-  // Watermark logic — sembunyikan kalau showWatermark === false
-  const showWatermark = d.showWatermark !== false;
-  const watermarkHtml = showWatermark
-    ? `<div class="bio-footer">Powered by <a href="${PARENT_SITE}" target="_top">Varlinkbio</a> · by Varoo</div>`
-    : `<div class="bio-footer" style="opacity:.6;font-size:10px">by Varoo</div>`;
-
-  // CTA Floating — muncul kalau ada watermark (bukan Pro/Ultimate)
-  const ctaHtml = showWatermark
-    ? `<a class="bio-cta-float" href="${PARENT_SITE}/#/register" target="_top">✨ Bikin bio kamu</a>`
-    : "";
-
-  $("#app").innerHTML = `
-    <div class="bio-deco d1"></div><div class="bio-deco d2"></div><div class="bio-deco d3"></div>
-    <div class="bio-wrap ${themeClass} ${animCls}">
-      <div class="bio-inner">
-        ${bannerBlock}
-        <div class="bio-header">
-          <div class="bio-avatar">${profileBlock}</div>
-          <div class="bio-title-top">Bio Link</div>
-          <div class="bio-name">${esc(d.name||"Tanpa Nama")}</div>
-          ${bioText}
-          ${badgeHtml}
-        </div>
-        ${logosHtml}
-        <div class="bio-links">${links}</div>
-        <div style="text-align:center">${watermarkHtml}</div>
-      </div>
-    </div>
-    ${ctaHtml}
-    ${isLocked ? `
-      <div class="lock-overlay" id="lock-overlay">
-        <div class="lock-card">
-          <div class="li">${ico('lock')}</div>
-          <h3>Terkunci</h3>
-          <p>Masukkan password untuk membuka.</p>
-          <input type="password" id="lock-pass" placeholder="Password..." autocomplete="off"/>
-          <button id="lock-btn">Buka</button>
-        </div>
-      </div>` : ""}`;
-
-  // Track view
-  if(bioId){
-    db.collection("bios").doc(bioId).update({
-      "stats.views": firebase.firestore.FieldValue.increment(1)
-    }).catch(()=>{});
-  }
-
-  // Track click
-  $$("[data-click]").forEach(el => {
-    el.addEventListener("click", () => {
-      const idx = +el.dataset.click;
-      if(bioId){
-        db.collection("bios").doc(bioId).update({
-          [`stats.clicks.${idx}`]: firebase.firestore.FieldValue.increment(1)
-        }).catch(()=>{});
-      }
+function renderLucide(name){
+  if(!window.lucide || !window.lucide.icons) return "";
+  var p = pascalCase(name);
+  var icon = window.lucide.icons[p];
+  if(!icon) return "";
+  var inner = "";
+  for(var i=0;i<icon.length;i++){
+    var item = icon[i];
+    if(!item || !item[0]) continue;
+    var tag = item[0];
+    var attrs = item[1] || {};
+    var attrStr = "";
+    Object.keys(attrs).forEach(function(k){
+      var v = String(attrs[k]).replace(/"/g,"&quot;");
+      attrStr += " " + k + '="' + v + '"';
     });
-  });
-
-  // Lock handler
-  if(isLocked){
-    const overlay = $("#lock-overlay");
-    const inp = $("#lock-pass");
-    const btn = $("#lock-btn");
-
-    if(sessionStorage.getItem("varlink_unlocked_"+bioId) === "1"){
-      overlay.style.display = "none";
-    }
-
-    const unlock = () => {
-      if(inp.value === d.lock){
-        overlay.style.display = "none";
-        sessionStorage.setItem("varlink_unlocked_"+bioId, "1");
-      } else {
-        inp.style.borderColor = "#ff2a2a";
-        inp.value = "";
-        inp.placeholder = "Salah, coba lagi...";
-        setTimeout(()=>{
-          inp.style.borderColor = "";
-          inp.placeholder = "Password...";
-        }, 1400);
-      }
-    };
-    btn.addEventListener("click", unlock);
-    inp.addEventListener("keydown", e => { if(e.key === "Enter") unlock(); });
-    inp.focus();
+    inner += "<" + tag + attrStr + "></" + tag + ">";
   }
+  return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + inner + '</svg>';
 }
 
-function renderNotFound(){
-  document.title = "Varlink — Tidak Ditemukan";
-  $("#app").innerHTML = `
-    <div class="error-page">
-      <div class="err-icon">${ico('x')}</div>
-      <h1>Tidak Ditemukan</h1>
-      <p>Link-in-bio ini gak ada, atau sudah dihapus. Mau bikin bio kamu sendiri?</p>
-      <a href="${PARENT_SITE}" class="err-btn">
-        ${ico('link')} Bikin di Varlinkbio
-      </a>
-    </div>`;
+var EMOJI_REGEX = /([\u{1F000}-\u{1FFFF}]|[\u{2600}-\u{27BF}]|[\u{2190}-\u{21FF}]|[\u{2B00}-\u{2BFF}]|[\u{FE0F}]|[\u{200D}])/gu;
+
+function emojiToSvg(text){
+  if(!text) return text;
+  if(!window.lucide || !window.lucide.icons) return text;
+  return String(text).replace(EMOJI_REGEX, function(match){
+    if(match === "\uFE0F" || match === "\u200D") return "";
+    var name = EMOJI_MAP[match];
+    if(!name) return match;
+    var svg = renderLucide(name);
+    if(!svg) return match;
+    return '<span class="lucide-emoji">' + svg + '</span>';
+  });
 }
 
-function renderRedirect(){
-  document.title = "Varlink — Redirect";
-  $("#app").innerHTML = `
-    <div class="error-page">
-      <div class="err-icon" style="background:var(--blue);color:#fff">${ico('link')}</div>
-      <h1>Varlink</h1>
-      <p>Kamu akan diarahkan ke halaman utama Varlinkbio...</p>
-      <a href="${PARENT_SITE}" class="err-btn">
-        ${ico('link')} Buka Varlinkbio
-      </a>
-    </div>`;
-  setTimeout(() => {
-    location.replace(PARENT_SITE);
-  }, 1500);
-}
-
-async function applyFavicon(){
-  try{
-    const doc = await db.collection("settings").doc("app").get();
-    const fav = doc.exists ? doc.data().favicon : null;
-    if(fav){
-      let links = document.querySelectorAll("link[rel='icon'], link[rel='shortcut icon']");
-      if(!links.length){
-        const link = document.createElement("link");
-        link.rel = "icon";
-        document.head.appendChild(link);
-        links = [link];
-      }
-      links.forEach(l => l.href = fav);
-    }
-  }catch(e){ console.warn("favicon:", e); }
-}
-
-(async function boot(){
-  const raw = location.hash.slice(1) || "/";
-  const path = raw.split("?")[0];
-
-  if(path.startsWith("/u/")){
-    const identifier = path.slice(3).trim();
-    if(!identifier){ renderNotFound(); return; }
-
-    await applyFavicon();
-
-    let bio = null;
+function initEmojiObserver(){
+  var SKIP = ["SCRIPT","STYLE","TEXTAREA","INPUT","CODE","PRE","SVG","PATH","CIRCLE","RECT","POLYGON","LINE","POLYLINE","ELLIPSE","G","DEFS","IFRAME"];
+  
+  function convertNode(node){
+    if(!node || !node.nodeValue) return;
+    var txt = node.nodeValue;
+    if(!txt) return;
+    EMOJI_REGEX.lastIndex = 0;
+    if(!EMOJI_REGEX.test(txt)) return;
     try{
-      bio = await getBio(identifier);
-    }catch(e){ console.error("getBio:", e); }
+      var html = emojiToSvg(txt);
+      if(html && html !== txt){
+        var span = document.createElement("span");
+        span.style.display = "contents";
+        span.setAttribute("data-emoji-converted","1");
+        span.innerHTML = html;
+        node.parentNode.replaceChild(span, node);
+      }
+    }catch(e){}
+  }
+  
+  function walk(root){
+    if(!root || root.nodeType !== 1) return;
+    if(SKIP.indexOf(root.tagName) !== -1) return;
+    if(root.classList && root.classList.contains("lucide-emoji")) return;
+    var kids = Array.prototype.slice.call(root.childNodes || []);
+    kids.forEach(function(k){
+      if(k.nodeType === 3) convertNode(k);
+      else if(k.nodeType === 1) walk(k);
+    });
+  }
+  
+  // Initial scan
+  setTimeout(function(){ walk(document.body); }, 800);
+  setTimeout(function(){ walk(document.body); }, 2000);
+  
+  // Observer
+  try{
+    var obs = new MutationObserver(function(muts){
+      muts.forEach(function(m){
+        if(m.target && m.target.closest && m.target.closest(".lucide-emoji")) return;
+        if(m.target && m.target.closest && m.target.closest("iframe")) return;
+        m.addedNodes.forEach(function(n){
+          if(n.nodeType === 1 && n.tagName !== "IFRAME") walk(n);
+          else if(n.nodeType === 3) convertNode(n);
+        });
+      });
+    });
+    obs.observe(document.body, { childList: true, subtree: true });
+  }catch(e){}
+}
 
-    if(!bio){
-      renderNotFound();
+/* ═══════════════════════════════════════════════════════════
+   MUSIC AUTO-PLAY (Opsi A)
+   ═══════════════════════════════════════════════════════════ */
+var MusicPlayer = {
+  _audio: null,
+  _current: null,
+  _started: false,
+  _wasPlaying: false,
+  
+  init: async function(musicId){
+    if(!musicId) return;
+    try{
+      var doc = await FB.db.collection("music_library").doc(musicId).get();
+      if(!doc.exists) return;
+      var data = doc.data();
+      if(!data || !data.url) return;
+      
+      this._current = data;
+      this._audio = new Audio();
+      this._audio.src = data.url;
+      this._audio.loop = true;
+      this._audio.volume = 0.6;
+      this._audio.preload = "auto";
+      
+      // Try autoplay
+      var self = this;
+      var promise = this._audio.play();
+      if(promise && promise.then){
+        promise.then(function(){
+          self._started = true;
+          console.log("🎵 Music autoplay OK:", data.title);
+        }).catch(function(err){
+          console.log("🎵 Autoplay di-block, nunggu tap:", err.message);
+          self._setupTapFallback();
+        });
+      }
+      
+      // Page visibility (auto-pause saat hidden)
+      document.addEventListener("visibilitychange", function(){
+        if(document.hidden){
+          if(self._audio && !self._audio.paused){
+            self._wasPlaying = true;
+            self._audio.pause();
+          }
+        } else {
+          if(self._wasPlaying && self._audio && self._audio.paused){
+            self._audio.play().catch(function(){});
+            self._wasPlaying = false;
+          }
+        }
+      });
+      
+      // Before unload
+      window.addEventListener("beforeunload", function(){
+        if(self._audio){ self._audio.pause(); self._audio.currentTime = 0; }
+      });
+      
+    }catch(e){
+      console.warn("Music init error:", e);
+    }
+  },
+  
+  _setupTapFallback: function(){
+    var self = this;
+    function handleTap(){
+      if(self._audio && self._audio.paused){
+        self._audio.play().then(function(){
+          self._started = true;
+          console.log("🎵 Music started (tap)");
+        }).catch(function(){});
+      }
+      document.removeEventListener("click", handleTap);
+      document.removeEventListener("touchstart", handleTap);
+    }
+    document.addEventListener("click", handleTap, { once: true });
+    document.addEventListener("touchstart", handleTap, { once: true });
+  }
+};
+
+/* ═══════════════════════════════════════════════════════════
+   RENDER BIO
+   ═══════════════════════════════════════════════════════════ */
+function renderBadge(bio){
+  var plan = bio.ownerPlan || "free";
+  if(plan === "free") return "";
+  var map = { starter:"STARTER", pro:"PRO", ultimate:"ULTIMATE" };
+  var label = map[plan];
+  if(!label) return "";
+  return '<div class="bio-plan-badge ' + plan + '">' + label + '</div>';
+}
+
+function renderBanner(bio){
+  if(!bio.banner) return "";
+  if(bio.bannerType === "video"){
+    return '<div class="bio-banner"><video src="' + esc(bio.banner) + '" autoplay muted loop playsinline></video></div>';
+  }
+  return '<div class="bio-banner"><img src="' + esc(bio.banner) + '" alt=""/></div>';
+}
+
+function renderAvatar(bio){
+  if(bio.profile){
+    return '<div class="bio-avatar"><img src="' + esc(bio.profile) + '" alt=""/></div>';
+  }
+  var initial = (bio.name || "?").toUpperCase().charAt(0);
+  return '<div class="bio-avatar placeholder">' + esc(initial) + '</div>';
+}
+
+function renderLogos(logos){
+  if(!logos || !logos.length) return "";
+  return '<div class="bio-logos">' + logos.map(function(lg){
+    var name = lg.name || "Partner";
+    var initial = name.charAt(0).toUpperCase();
+    var inner = lg.img
+      ? '<img src="' + esc(lg.img) + '" alt="' + esc(name) + '"/>'
+      : '<span class="fallback">' + esc(initial) + '</span>';
+    return '<div class="bio-logo-item" title="' + esc(name) + '">' + inner + '</div>';
+  }).join("") + '</div>';
+}
+
+function renderLink(link, idx){
+  var url = link.url || "#";
+  var label = link.label || "Link";
+  var bgColor = link.color || "";
+  var delay = (idx * 0.05).toFixed(2);
+  var iconName = getLinkIcon(url);
+  
+  // Featured link
+  if(link.type === "featured" && link.thumb){
+    var bg = bgColor || "#ffffff";
+    var fg = contrastText(bg);
+    var ratio = link.featRatio === "1:1" ? "1/1" :
+                link.featRatio === "4:3" ? "4/3" :
+                link.featRatio === "auto" ? "auto" : "16/9";
+    var posX = link.featPosX != null ? link.featPosX : 50;
+    var posY = link.featPosY != null ? link.featPosY : 50;
+    var zoom = link.featZoom != null ? link.featZoom : 1;
+    var pad = link.featPadding != null ? link.featPadding : 10;
+    
+    return '<a class="bio-link bio-featured" href="' + esc(url) + '" target="_blank" rel="noopener" data-idx="' + idx + '" ' +
+      'style="animation-delay:' + delay + 's;--feat-bg:' + bg + ';--feat-fg:' + fg + ';' +
+      '--feat-ratio:' + ratio + ';--feat-pos-x:' + posX + '%;--feat-pos-y:' + posY + '%;' +
+      '--feat-zoom:' + zoom + ';--feat-padding:' + pad + 'px">' +
+      '<div class="feat-img-wrap"><img class="feat-img" src="' + esc(link.thumb) + '" alt="' + esc(label) + '"/></div>' +
+      '<div class="feat-body"><b>' + esc(label) + '</b></div>' +
+    '</a>';
+  }
+  
+  // Embed
+  if(["youtube","spotify","vimeo","tiktok"].indexOf(link.type) !== -1){
+    var embedUrl = getEmbedUrl(url);
+    if(embedUrl){
+      return '<div class="bio-embed" style="animation-delay:' + delay + 's">' +
+        '<iframe src="' + esc(embedUrl) + '" allowfullscreen loading="lazy" ' +
+        'allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture"></iframe>' +
+      '</div>';
+    }
+  }
+  
+  // Classic
+  var customStyle = bgColor ? 'background:' + bgColor + ';color:' + contrastText(bgColor) : "";
+  return '<a class="bio-link" href="' + esc(url) + '" target="_blank" rel="noopener" ' +
+    'data-idx="' + idx + '" style="animation-delay:' + delay + 's;' + customStyle + '">' +
+    '<span class="licon">' + iconSvg(iconName) + '</span>' +
+    '<span class="ltext">' + esc(label) + '</span>' +
+  '</a>';
+}
+
+function renderBio(bio){
+  var theme = bio.theme || "neo-cream";
+  var themeClass = "theme-" + theme;
+  var anim = bio.animation || "none";
+  
+  var links = Array.isArray(bio.links) ? bio.links.filter(function(l){ return l.active !== false; }) : [];
+  var logos = Array.isArray(bio.logos) ? bio.logos : [];
+  var showWatermark = bio.showWatermark !== false;
+  
+  // Custom theme (v7.6)
+  var customThemeCSS = "";
+  if(bio.customThemeData){
+    customThemeCSS = buildCustomThemeCSS(bio.customThemeData);
+    themeClass = "custom-theme-active";
+  }
+  
+  var html = '<div class="bio-deco d1"></div>' +
+    '<div class="bio-deco d2"></div>' +
+    '<div class="bio-deco d3"></div>';
+  
+  html += '<div class="bio-wrap ' + themeClass + ' anim-' + anim + '">';
+  html += '<div class="bio-inner">';
+  
+  html += renderBanner(bio);
+  
+  html += '<div class="bio-header">';
+  html += renderAvatar(bio);
+  html += '<div class="bio-title-top">LINK IN BIO</div>';
+  if(bio.name) html += '<div class="bio-name">' + esc(bio.name) + '</div>';
+  if(bio.bio) html += '<div class="bio-bio">' + esc(bio.bio) + '</div>';
+  html += renderBadge(bio);
+  html += '</div>';
+  
+  html += renderLogos(logos);
+  
+  html += '<div class="bio-links">';
+  if(links.length){
+    html += links.map(function(l, i){ return renderLink(l, i); }).join("");
+  } else {
+    html += '<div style="text-align:center;padding:20px;font-size:12.5px;font-weight:700;opacity:.7">Belum ada link.</div>';
+  }
+  html += '</div>';
+  
+  // Footer / Watermark
+  if(showWatermark){
+    html += '<div class="bio-footer" style="align-self:center;display:block;margin-left:auto;margin-right:auto">Dibuat dengan <a href="' + APP_URL + '/#/register" target="_blank">Varlinkbio</a></div>';
+  } else {
+    html += '<div class="bio-footer" style="align-self:center;display:block;margin-left:auto;margin-right:auto;opacity:.6">by Varoo</div>';
+  }
+  
+  html += '</div></div>';
+  
+  // CTA float (kalo ada watermark)
+  if(showWatermark){
+    html += '<a class="bio-cta-float" href="' + APP_URL + '/#/register" target="_blank">⚡ Bikin Bio Kamu</a>';
+  }
+  
+  // Lock overlay
+  if(bio.lock){
+    html += renderLock();
+  }
+  
+  return {
+    html: html,
+    customThemeCSS: customThemeCSS
+  };
+}
+
+function buildCustomThemeCSS(theme){
+  if(!theme) return "";
+  var c = theme.colors || {};
+  var bg = c.bg || "#f0ebe0";
+  var text = c.text || "#0a0a0a";
+  var btnBg = c.btnBg || "#ffffff";
+  var btnText = c.btnText || "#0a0a0a";
+  var border = c.border || "#0a0a0a";
+  var accent = c.accent || "#ffd700";
+  var shadow = c.shadow || "#0a0a0a";
+  
+  var shadowStyle = "4px 4px 0 " + shadow;
+  if(theme.shadowStyle === "none") shadowStyle = "none";
+  else if(theme.shadowStyle === "soft") shadowStyle = "0 4px 12px rgba(0,0,0,.15)";
+  else if(theme.shadowStyle === "glow") shadowStyle = "0 0 20px " + accent;
+  
+  var radius = (theme.borderRadius || 12) + "px";
+  var font = "'" + (theme.font || "Inter") + "', sans-serif";
+  
+  var patternCSS = "";
+  if(theme.bgPattern === "dots"){
+    patternCSS = "background-image: radial-gradient(circle, " + text + " 1.4px, transparent 1.4px), radial-gradient(circle, " + text + " 1.4px, transparent 1.4px); background-size: 20px 20px, 20px 20px; background-position: 0 0, 10px 10px;";
+  } else if(theme.bgPattern === "lines"){
+    patternCSS = "background-image: repeating-linear-gradient(45deg, " + text + " 0, " + text + " 1px, transparent 1px, transparent 12px);";
+  } else if(theme.bgPattern === "grid"){
+    patternCSS = "background-image: linear-gradient(" + text + " 1px, transparent 1px), linear-gradient(90deg, " + text + " 1px, transparent 1px); background-size: 20px 20px;";
+  } else if(theme.bgPattern === "gradient"){
+    patternCSS = "background: " + (theme.bgGradient || "linear-gradient(135deg,#ffd700,#ff69b4)") + ";";
+  }
+  
+  return '<style>' +
+    '.custom-theme-active{' +
+      'font-family: ' + font + ' !important;' +
+      'background-color: ' + bg + ' !important;' +
+      'color: ' + text + ' !important;' +
+      patternCSS +
+    '}' +
+    '.custom-theme-active .bio-name{background:' + accent + ' !important;color:' + text + ' !important;border-color:' + border + ' !important;border-radius:' + radius + ' !important;box-shadow:' + shadowStyle + ' !important}' +
+    '.custom-theme-active .bio-bio{background:' + accent + ' !important;color:' + text + ' !important;border-color:' + border + ' !important;border-radius:' + radius + ' !important}' +
+    '.custom-theme-active .bio-title-top{background:' + btnBg + ' !important;color:' + btnText + ' !important;border-color:' + border + ' !important;border-radius:' + radius + ' !important}' +
+    '.custom-theme-active .bio-link{background:' + btnBg + ' !important;color:' + btnText + ' !important;border-color:' + border + ' !important;border-radius:' + radius + ' !important;box-shadow:' + shadowStyle + ' !important;font-family:' + font + ' !important}' +
+    '.custom-theme-active .bio-avatar{border-color:' + border + ' !important;box-shadow:' + shadowStyle + ' !important}' +
+    '.custom-theme-active .bio-banner{border-color:' + border + ' !important;border-radius:' + radius + ' !important;box-shadow:' + shadowStyle + ' !important}' +
+    '.custom-theme-active .bio-footer{background:' + btnBg + ' !important;color:' + btnText + ' !important;border-color:' + border + ' !important}' +
+    '.custom-theme-active .bio-deco{display:none !important}' +
+  '</style>';
+}
+
+function renderLock(){
+  return '<div class="lock-overlay" id="lock-overlay">' +
+    '<div class="lock-card">' +
+    '<div class="li">🔒</div>' +
+    '<h3>Bio Dikunci</h3>' +
+    '<p>Masukkan password untuk melihat bio ini.</p>' +
+    '<input type="password" id="lock-input" placeholder="Password" autofocus/>' +
+    '<div class="lock-err" id="lock-err"></div>' +
+    '<button id="lock-submit">Buka Bio</button>' +
+    '</div></div>';
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SHOW ERROR PAGE
+   ═══════════════════════════════════════════════════════════ */
+function showError(msg){
+  var app = document.getElementById("app");
+  if(!app) return;
+  app.innerHTML = '<div class="vb-error">' +
+    '<div class="icon">🔍</div>' +
+    '<h1>Bio Tidak Ditemukan</h1>' +
+    '<p>' + esc(msg || "URL yang kamu buka gak ada atau udah dihapus.") + '</p>' +
+    '<a href="' + APP_URL + '/#/register">Bikin Bio Kamu →</a>' +
+  '</div>';
+  var loading = document.getElementById("loading");
+  if(loading) loading.classList.add("hide");
+}
+
+/* ═══════════════════════════════════════════════════════════
+   ANALYTICS TRACKING
+   ═══════════════════════════════════════════════════════════ */
+function trackView(bioId){
+  try{
+    var today = new Date().toISOString().slice(0,10);
+    var ref = FB.db.collection("bios").doc(bioId);
+    ref.update({
+      "stats.views": firebase.firestore.FieldValue.increment(1),
+      ["stats.daily." + today + ".views"]: firebase.firestore.FieldValue.increment(1)
+    }).catch(function(){});
+  }catch(e){}
+}
+
+function trackClick(bioId, idx){
+  try{
+    var today = new Date().toISOString().slice(0,10);
+    var ref = FB.db.collection("bios").doc(bioId);
+    ref.update({
+      ["stats.clicks." + idx]: firebase.firestore.FieldValue.increment(1),
+      ["stats.daily." + today + ".clicks"]: firebase.firestore.FieldValue.increment(1)
+    }).catch(function(){});
+  }catch(e){}
+}
+
+/* ═══════════════════════════════════════════════════════════
+   MAIN RENDER
+   ═══════════════════════════════════════════════════════════ */
+async function renderPage(slug){
+  try{
+    if(!slug){
+      showError("Slug bio kosong");
       return;
     }
+    
+    // Fetch bio — coba by id, terus by slug
+    var bio = null;
+    try{
+      var doc = await FB.db.collection("bios").doc(slug).get();
+      if(doc.exists) bio = Object.assign({ id: doc.id }, doc.data());
+    }catch(e){}
+    
+    if(!bio){
+      try{
+        var q = await FB.db.collection("bios").where("slug","==",slug).limit(1).get();
+        if(!q.empty){
+          var d = q.docs[0];
+          bio = Object.assign({ id: d.id }, d.data());
+        }
+      }catch(e){}
+    }
+    
+    if(!bio){
+      showError("Bio dengan URL \"" + slug + "\" gak ditemukan.");
+      return;
+    }
+    
+    // Track view
+    trackView(bio.id);
+    
+    // Title
+    document.title = (bio.name || "Link in Bio") + " — Varlinkbio";
+    var metaDesc = document.querySelector('meta[name="description"]');
+    if(metaDesc && bio.bio) metaDesc.setAttribute("content", bio.bio);
+    var ogTitle = document.querySelector('meta[property="og:title"]');
+    if(ogTitle && bio.name) ogTitle.setAttribute("content", bio.name);
+    var ogDesc = document.querySelector('meta[property="og:description"]');
+    if(ogDesc && bio.bio) ogDesc.setAttribute("content", bio.bio);
+    var ogImage = document.createElement("meta");
+    ogImage.setAttribute("property","og:image");
+    ogImage.setAttribute("content", bio.profile || bio.banner || "");
+    document.head.appendChild(ogImage);
+    
+    // Render
+    var result = renderBio(bio);
+    var app = document.getElementById("app");
+    if(!app){ return; }
+    
+    // Inject custom theme CSS
+    if(result.customThemeCSS){
+      var tempDiv = document.createElement("div");
+      tempDiv.innerHTML = result.customThemeCSS;
+      while(tempDiv.firstChild){
+        document.head.appendChild(tempDiv.firstChild);
+      }
+    }
+    
+    app.innerHTML = result.html;
+    
+    // Init music
+    if(bio.musicId){
+      MusicPlayer.init(bio.musicId);
+    }
+    
+    // Emoji converter
+    initEmojiObserver();
+    
+    // Lock handle
+    if(bio.lock){
+      setupLock(bio);
+    }
+    
+    // Track clicks
+    $$(".bio-link[data-idx]").forEach(function(el){
+      el.addEventListener("click", function(){
+        var idx = el.getAttribute("data-idx");
+        trackClick(bio.id, idx);
+      });
+    });
+    
+    // Hide loading
+    var loading = document.getElementById("loading");
+    if(loading) loading.classList.add("hide");
+    
+    console.log("✅ Bio rendered:", bio.name);
+    
+  }catch(e){
+    console.error("Render error:", e);
+    showError("Terjadi kesalahan: " + e.message);
+  }
+}
 
-    document.title = `VarlinkBio-${bio.name || "User"}`;
-    renderBio(bio);
+/* ═══════════════════════════════════════════════════════════
+   LOCK SETUP
+   ═══════════════════════════════════════════════════════════ */
+function setupLock(bio){
+  try{
+    var overlay = document.getElementById("lock-overlay");
+    var input = document.getElementById("lock-input");
+    var btn = document.getElementById("lock-submit");
+    var errEl = document.getElementById("lock-err");
+    
+    if(!overlay || !input || !btn) return;
+    
+    function tryUnlock(){
+      var val = input.value.trim();
+      if(val === bio.lock){
+        overlay.remove();
+        if(window.Sound) Sound.success();
+      } else {
+        errEl.textContent = "Password salah!";
+        input.value = "";
+        input.focus();
+      }
+    }
+    
+    btn.addEventListener("click", tryUnlock);
+    input.addEventListener("keydown", function(e){
+      if(e.key === "Enter") tryUnlock();
+    });
+    setTimeout(function(){ input.focus(); }, 300);
+  }catch(e){}
+}
+
+/* ═══════════════════════════════════════════════════════════
+   ROUTER
+   ═══════════════════════════════════════════════════════════ */
+function resolveRoute(){
+  var raw = location.hash.slice(1) || "/";
+  var path = raw.split("?")[0];
+  
+  if(path.indexOf("/u/") === 0){
+    var slug = path.slice(3);
+    renderPage(slug);
+  } else {
+    // Redirect ke APP
+    location.replace(APP_URL + "/#/");
   }
-  else {
-    renderRedirect();
+}
+
+window.addEventListener("hashchange", resolveRoute);
+
+/* ═══════════════════════════════════════════════════════════
+   BOOT
+   ═══════════════════════════════════════════════════════════ */
+function boot(){
+  console.log("%c╔════════════════════════════════════════╗","color:#ffd700;font-weight:bold");
+  console.log("%c║  VLINK-BIO v10.0                       ║","color:#ffd700;font-weight:bold");
+  console.log("%c║  by Varoo                              ║","color:#ffd700;font-weight:bold");
+  console.log("%c╚════════════════════════════════════════╝","color:#ffd700;font-weight:bold");
+  
+  if(!FB.ready){
+    setTimeout(boot, 500);
+    return;
   }
+  
+  resolveRoute();
+}
+
+if(document.readyState === "loading"){
+  document.addEventListener("DOMContentLoaded", function(){ setTimeout(boot, 200); });
+} else {
+  setTimeout(boot, 200);
+}
+
 })();
 </script>
 </body>
